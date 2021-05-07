@@ -8,4 +8,4 @@ const analytics = Analytics({
     ]
 })
 
-export default analytics
+export default analytics;

@@ -15,14 +15,14 @@ window.tracker || (window.tracker = {});
     };
 
     // For each of our methods, generate a queueing stub.
-    for (var i = 0; i < methods.length; i++) {
-        var method = methods[i];
+    for (let i = 0; i < methods.length; i++) {
+        let method = methods[i];
         window.tracker[method] = factory(method);
     }
 
     function callback(e) {
         console.debug("Rerun callbacks")
-        // Now window.tracardi.default is presnet
+        // Now window.tracardi.default is present
         window.tracker = window.tracardi.default
         while (trackerQueue.length > 0) {
             const item = trackerQueue.shift();

@@ -9,6 +9,10 @@ import {getItem, setItem} from "@analytics/storage-utils";
 
 export default function tracardiPlugin(options) {
 
+    const clientInfo = ClientInfo();
+    const event = Event();
+    const pageInfo = clientInfo.page();
+
     const tracks = {};
     const trackEventList = EventsList(tracks);
     const identifyEventList = EventsList(null);
@@ -41,15 +45,18 @@ export default function tracardiPlugin(options) {
                 tracks: false
             }
 
-            window.config = config
-
             if(!hasCookieSupport()) {
                 console.error("[Tracker] Cookies disabled.");
                 return;
             }
 
-            const event = Event();
-            const clientInfo = ClientInfo();
+            if(typeof config == 'undefined' || typeof config.tracker == 'undefined' || typeof config.tracker.source === 'undefined') {
+                console.error("[Tracker] config.tracker.source undefined.");
+                return;
+            }
+
+            window.config = config
+
             let payload = {
                 type: "sessionCreated",
                 source: config.tracker.source,
@@ -100,8 +107,12 @@ export default function tracardiPlugin(options) {
         },
         page: ({ payload }) => {
             console.log("Event page",payload);
-            const event = Event();
-            const clientInfo = ClientInfo();
+
+            if(typeof config == 'undefined' || typeof config.tracker == 'undefined' || typeof config.tracker.source === 'undefined') {
+                console.error("[Tracker] config.tracker.source undefined.");
+                return;
+            }
+
             const pageInfo = clientInfo.page();
             pageInfo.search = payload.properties.search;
             delete payload.properties.width;
@@ -133,9 +144,10 @@ export default function tracardiPlugin(options) {
         track: ({ payload }) => {
             console.log("Event track", payload);
 
-            const event = Event();
-            const clientInfo = ClientInfo();
-            const pageInfo = clientInfo.page();
+            if(typeof config == 'undefined' || typeof config.tracker == 'undefined' || typeof config.tracker.source === 'undefined') {
+                console.error("[Tracker] config.tracker.source undefined.");
+                return;
+            }
 
             const eventPayload = {
                 type: payload.event,
@@ -156,9 +168,10 @@ export default function tracardiPlugin(options) {
         identify: ({ payload }) => {
             console.log("Event identify",payload)
 
-            const event = Event();
-            const clientInfo = ClientInfo();
-            const pageInfo = clientInfo.page();
+            if(typeof config == 'undefined' || typeof config.tracker == 'undefined' || typeof config.tracker.source === 'undefined') {
+                console.error("[Tracker] config.tracker.source undefined.");
+                return;
+            }
 
             const eventPayload = {
                 type: payload.event,
@@ -175,7 +188,6 @@ export default function tracardiPlugin(options) {
                 user: {id: payload.userId}
             }
             identifyEventList.add(event.build(eventPayload));
-            console.log("indef", identifyEventList.get())
         },
         loaded: () => {
             console.debug("Plugin loaded")
