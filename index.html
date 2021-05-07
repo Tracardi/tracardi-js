@@ -7,9 +7,9 @@
                 tracker: {
                     url: 'http://localhost:8001',
                     scope: "scope",
-                    // init: {
-                    //     mydata: "aaa"
-                    // }
+                    init: {
+                        mydata: "aaa"
+                    }
                 }
             }
 
@@ -18,11 +18,11 @@
         </script>
         <script>
             window.tracker.page({"page":1})
-            window.tracker.page({"page":2})
             window.tracker.track("xxx1", {"a":1})
             window.tracker.track("xxx2", {"a":2})
             window.tracker.track("xxx3", {"a":3})
-            window.tracker.identify("user-id", {"a":1})
+            window.tracker.identify("user-id-1", {"a":1})
+            window.tracker.identify("user-id-2", {"a":2})
         </script>
     </head>
     <body>

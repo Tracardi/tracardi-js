@@ -4,14 +4,25 @@ import { v4 as uuid4 } from 'uuid';
 import Event from './domain/event';
 import ClientInfo from './domain/clientInfo';
 import EventsList from './domain/eventsList';
+import {getItem, setItem} from "@analytics/storage-utils";
 
 
 export default function tracardiPlugin(options) {
 
-    let page = null;
     const tracks = {};
     const trackEventList = EventsList(tracks);
+    const identifyEventList = EventsList(null);
+    const initEventList = EventsList(null);
+    const pageEventList = EventsList(null);
     const cookieName = 'tracardi-session-id';
+    const profileName = 'tracardi-profile-id';
+    const profileId = getItem(profileName)
+    let sessionId = getCookie(cookieName);
+    if(!sessionId) {
+        sessionId = uuid4();
+        const expires = 60*60*31*30;
+        setCookie(cookieName, sessionId, expires);
+    }
     let singleApiCall = {}
 
     return {
@@ -38,22 +49,17 @@ export default function tracardiPlugin(options) {
                 return;
             }
 
-            let sessionId = getCookie(cookieName);
-            if(!sessionId) {
-                sessionId = uuid4();
-                const expires = 60*60*31*30;
-                setCookie(cookieName, sessionId, expires);
-            }
-
             const event = Event();
             const clientInfo = ClientInfo();
             let payload = {
                 type: "sessionCreated",
-                scope: config.scope,
-                sessionId: sessionId,
-                profileId: null,
-                properties: {
+                metadata: {
+                    scope: config.tracker.scope,
                     time: clientInfo.time(),
+                },
+                session: {id: sessionId},
+                profile: {id: profileId},
+                properties: {
                     browser: clientInfo.browser(),
                     storage: clientInfo.storage(),
                     screen: clientInfo.screen(),
@@ -66,15 +72,23 @@ export default function tracardiPlugin(options) {
                     Object.assign(payload, {payload: window.config.tracker.init})
             }
 
+            initEventList.add(event.build(payload))
+
+            // console.log("payload", payload)
+            // console.log("copy")
+            // console.log(initEventList.get())
+
             if(typeof window.config !== "undefined"  &&
                 typeof window.config.tracker !== "undefined" &&
                 typeof window.config.tracker.url !== "undefined") {
                     axios.post(
                         window.config.tracker.url + '/init',
-                        event.build(payload)
+                        initEventList.get()
                     ).then(
                         (response) => {
-                            console.log(response)
+                            console.log(response.data.profile)
+                            setItem(profileName, response.data.profile.id)
+                            // todo raise event onContextReady
                         }
                     ).catch((e) => {
                         console.log(e)
@@ -101,50 +115,68 @@ export default function tracardiPlugin(options) {
 
             const eventPayload = {
                 type: "view",
-                scope: config.scope,
-                sessionId: getCookie(cookieName),
-                profileId: null,
-                userId: payload.userId,
+                metadata: {
+                    scope: config.tracker.scope,
+                    time: clientInfo.time(),
+                },
+                session: {id: sessionId},
+                profile: {id: profileId},
                 properties: {
                     page: pageInfo,
                     screen: clientInfo.screen(),
                 },
-                payload: payload.properties
+                payload: payload.properties,
+                userId: payload.userId
             }
-            page = event.build(eventPayload);
+            pageEventList.add(event.build(eventPayload));
         },
 
         track: ({ payload }) => {
             console.log("Event track", payload);
-            // call provider specific event tracking
+
             const event = Event();
             const clientInfo = ClientInfo();
             const pageInfo = clientInfo.page();
-            // pageInfo.search = payload.properties.search;
-            // delete payload.properties.width;
-            // delete payload.properties.height;
-            // delete payload.properties.url;
-            // delete payload.properties.search;
-            // delete payload.properties.hash;
-            // delete payload.properties.path;
-            // delete payload.properties.title;
 
             const eventPayload = {
                 type: payload.event,
-                scope: config.scope,
-                sessionId: getCookie(cookieName),
-                profileId: null,
-                userId: payload.userId,
+                metadata: {
+                    scope: config.tracker.scope,
+                    time: clientInfo.time(),
+                },
+                session: {id: sessionId},
+                profile: {id: profileId},
                 properties: {
                     page: pageInfo,
                 },
-                payload: payload.properties
+                payload: payload.properties,
+                userId: payload.userId
             }
             trackEventList.add(event.build(eventPayload));
         },
         identify: ({ payload }) => {
-            console.debug("Event identify",payload)
-            // call provider specific user identify method
+            console.log("Event identify",payload)
+
+            const event = Event();
+            const clientInfo = ClientInfo();
+            const pageInfo = clientInfo.page();
+
+            const eventPayload = {
+                type: payload.event,
+                metadata: {
+                    scope: config.tracker.scope,
+                    time: clientInfo.time(),
+                },
+                session: {id: sessionId},
+                profile: {id: profileId},
+                properties: {
+                    page: pageInfo,
+                },
+                payload: payload.traits,
+                userId: payload.userId
+            }
+            identifyEventList.add(event.build(eventPayload));
+            console.log("indef", identifyEventList.get())
         },
         loaded: () => {
             console.debug("Plugin loaded")
@@ -156,16 +188,13 @@ export default function tracardiPlugin(options) {
                 singleApiCall.tracks = true;
                 console.log('trackEnd');
                 console.log(trackEventList.get());
-                const payload = {
-                    "events": trackEventList.get()
-                }
 
                 if(typeof window.config !== "undefined"  &&
                     typeof window.config.tracker !== "undefined" &&
                     typeof window.config.tracker.url !== "undefined") {
                     axios.post(
                         window.config.tracker.url + '/track',
-                        payload
+                        trackEventList.get()
                     ).then(
                         (response) => {
                             console.log(response)
@@ -181,7 +210,6 @@ export default function tracardiPlugin(options) {
         pageEnd: () => {
             if(!singleApiCall.page) {
                 singleApiCall.page = true;
-                console.log('pageEnd', page);
                 console.log("config", window.config)
 
                 if(typeof window.config !== "undefined"  &&
@@ -189,7 +217,7 @@ export default function tracardiPlugin(options) {
                     typeof window.config.tracker.url !== "undefined") {
                     axios.post(
                         window.config.tracker.url + '/page',
-                        page
+                        pageEventList.get()
                     ).then(
                         (response) => {
                             console.log(response)

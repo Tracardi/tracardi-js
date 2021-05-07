@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@analytics/cookie-utils": "^0.2.3",
+    "@analytics/storage-utils": "^0.2.5",
     "@types/dlv": "^1.0.0",
     "analytics": "^0.7.5",
     "axios": "^0.21.1",

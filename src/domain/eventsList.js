@@ -2,26 +2,39 @@ import Event from './event';
 
 export default function EventsList(container) {
 
+    let store = null
     const eventObject = Event();
-    container.events || (container.events = null);
+    if(container !== null) {
+        container.events || (container.events = null);
+    }
 
     return {
-        add: (payload) => {
 
-            if(container.events === null) {
-                container = eventObject.static(payload);
-                console.log('xxx', payload);
-                container.events = []
+        add: (payload) => {
+            if(container !== null) {
+                if(container.events === null) {
+                    container = eventObject.static(payload);
+                    container.events = []
+                }
+                container.events.push(eventObject.dynamic(payload));
+            } else {
+                store = eventObject.static(payload);
+                store.events = [eventObject.dynamic(payload)];
             }
 
-            container.events.push(eventObject.dynamic(payload));
         },
         get: () => {
-            return container;
+            return (container !== null)
+                ? container
+                : store;
         },
 
         reset: () => {
-            container = {}
+            if(container !== null) {
+                container = {};
+            } else {
+                store =null;
+            }
         }
     }
 }

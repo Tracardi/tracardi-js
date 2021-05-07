@@ -1,31 +1,21 @@
 export default function Event() {
     return {
-        build: ({type, scope, sessionId, profileId, userId, properties, payload, payloadMetadata}) => {
+        build: ({type, metadata, session, profile, properties, payload, userId}) => {
             return {
                 type: type,
-                metadata: {
-                    scope: scope,
-                    time: {
-                        now: new Date(),
-                        timezone: (new Date()).getTimezoneOffset() / 60,
-                    },
-                    payload: payloadMetadata
-                },
-                session: {
-                    id: sessionId
-                },
-                profile: {
-                    id: profileId,
-                    userId: userId
-                },
+                metadata: metadata,
+                session: session,
+                profile: profile,
                 properties: properties,
-                payload: payload
+                payload: payload,
+                user: userId
             }
         },
         dynamic: (data) => {
             return {
                 payload: data.payload,
-                type: data.type
+                type: data.type,
+                user: data.user
             }
         },
         static: (payload) => {
