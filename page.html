@@ -4,7 +4,13 @@
         <script>
             const options = {
                 url: null,
-                scope: "scope"
+                tracker: {
+                    url: 'http://localhost:8001',
+                    scope: "scope",
+                    init: {
+                        mydata: "aaa"
+                    }
+                }
             }
 
             window.tracker || (window.tracker = {});

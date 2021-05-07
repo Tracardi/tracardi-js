@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@analytics/cookie-utils": "^0.2.3",
     "@types/dlv": "^1.0.0",
     "analytics": "^0.7.5",
     "axios": "^0.21.1",
     "babel-core": "^6.26.3",
     "babel-preset-es2015": "^6.24.1",
-    "babelify": "8"
+    "babelify": "8",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "browserify": "^17.0.0",

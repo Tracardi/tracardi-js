@@ -4,7 +4,13 @@
         <script>
             const options = {
                 url: null,
-                scope: "scope"
+                tracker: {
+                    url: 'http://localhost:8001',
+                    scope: "scope",
+                    // init: {
+                    //     mydata: "aaa"
+                    // }
+                }
             }
 
             !function(e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define([],e):("undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this).tracardi=e()}(function(){return function r(o,i,a){function d(t,e){if(!i[t]){if(!o[t]){var n="function"==typeof require&&require;if(!e&&n)return n(t,!0);if(c)return c(t,!0);throw(n=new Error("Cannot find module '"+t+"'")).code="MODULE_NOT_FOUND",n}n=i[t]={exports:{}},o[t][0].call(n.exports,function(e){return d(o[t][1][e]||e)},n,n.exports,r,o,i,a)}return i[t].exports}for(var c="function"==typeof require&&require,e=0;e<a.length;e++)d(a[e]);return d}({1:[function(e,t,n){"use strict";window.tracker||(window.tracker={}),function(){for(var n=[],e=["track","page","identify"],t=0;t<e.length;t++){var r=e[t];window.tracker[r]=function(t){return function(){var e=Array.prototype.slice.call(arguments);return e.unshift(t),n.push(e),window.tracker}}(r)}function o(){for(console.debug("Rerun callbacks"),window.tracker=window.tracardi.default;0<n.length;){var e=n.shift(),t=e.shift();tracker[t]&&tracker[t].apply(tracker,e)}}document.addEventListener("DOMContentLoaded",function(){var e=document.createElement("script");e.type="text/javascript",e.async=!0,null!==options.url?e.src=options.url+"/dist/tracker.js":e.src="dist/tracker.js",e.addEventListener?e.addEventListener("load",function(e){o()},!1):e.onreadystatechange=function(){"complete"!==this.readyState&&"loaded"!==this.readyState||o(window.event)};var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)})}()},{}]},{},[1])(1)});
@@ -12,7 +18,10 @@
         </script>
         <script>
             window.tracker.page({"page":1})
-            window.tracker.track("xxx", {"a":1})
+            window.tracker.page({"page":2})
+            window.tracker.track("xxx1", {"a":1})
+            window.tracker.track("xxx2", {"a":2})
+            window.tracker.track("xxx3", {"a":3})
             window.tracker.identify("user-id", {"a":1})
         </script>
     </head>
