@@ -26,9 +26,8 @@ export default function tracardiPlugin(options) {
     let singleApiCall = {}
 
     return {
-        /* All plugins require a name */
         name: 'tracardi-plugin',
-        /* Everything else below this is optional depending on your plugin requirements */
+
         config: {
             url: options.url,
             tracker: options.tracker
@@ -53,13 +52,13 @@ export default function tracardiPlugin(options) {
             const clientInfo = ClientInfo();
             let payload = {
                 type: "sessionCreated",
+                source: config.tracker.source,
                 metadata: {
-                    scope: config.tracker.scope,
                     time: clientInfo.time(),
                 },
                 session: {id: sessionId},
                 profile: {id: profileId},
-                properties: {
+                context: {
                     browser: clientInfo.browser(),
                     storage: clientInfo.storage(),
                     screen: clientInfo.screen(),
@@ -69,7 +68,7 @@ export default function tracardiPlugin(options) {
             if(typeof window.config !== "undefined"  &&
                 typeof window.config.tracker !== "undefined" &&
                 typeof window.config.tracker.init !== "undefined") {
-                    Object.assign(payload, {payload: window.config.tracker.init})
+                    Object.assign(payload, {properties: window.config.tracker.init})
             }
 
             initEventList.add(event.build(payload))
@@ -115,18 +114,18 @@ export default function tracardiPlugin(options) {
 
             const eventPayload = {
                 type: "view",
+                source: config.tracker.source,
                 metadata: {
-                    scope: config.tracker.scope,
                     time: clientInfo.time(),
                 },
                 session: {id: sessionId},
                 profile: {id: profileId},
-                properties: {
+                context: {
                     page: pageInfo,
                     screen: clientInfo.screen(),
                 },
-                payload: payload.properties,
-                userId: payload.userId
+                properties: payload.properties,
+                user: {id: payload.userId}
             }
             pageEventList.add(event.build(eventPayload));
         },
@@ -140,17 +139,17 @@ export default function tracardiPlugin(options) {
 
             const eventPayload = {
                 type: payload.event,
+                source: config.tracker.source,
                 metadata: {
-                    scope: config.tracker.scope,
                     time: clientInfo.time(),
                 },
                 session: {id: sessionId},
                 profile: {id: profileId},
-                properties: {
+                context: {
                     page: pageInfo,
                 },
-                payload: payload.properties,
-                userId: payload.userId
+                properties: payload.properties,
+                user: {id: payload.userId}
             }
             trackEventList.add(event.build(eventPayload));
         },
@@ -163,17 +162,17 @@ export default function tracardiPlugin(options) {
 
             const eventPayload = {
                 type: payload.event,
+                source: config.tracker.source,
                 metadata: {
-                    scope: config.tracker.scope,
                     time: clientInfo.time(),
                 },
                 session: {id: sessionId},
                 profile: {id: profileId},
-                properties: {
+                context: {
                     page: pageInfo,
                 },
-                payload: payload.traits,
-                userId: payload.userId
+                properties: payload.traits,
+                user: {id: payload.userId}
             }
             identifyEventList.add(event.build(eventPayload));
             console.log("indef", identifyEventList.get())
