@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const request = ({url, header, method, data}) => {
+export const request = ({url, header, method, data, onSuccess}) => {
 
     if(typeof header == "undefined") {
         header = {"Content-Type":'application/json'};
@@ -18,7 +18,9 @@ export const request = ({url, header, method, data}) => {
             header,
             data
         }).then(response => {
-            console.log(response);
+            if(typeof onSuccess !== "undefined") {
+                onSuccess(response);
+            }
         }).catch((e) => {
             if (e.response) {
                 if( typeof e.response.data === 'object') {

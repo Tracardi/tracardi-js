@@ -3,6 +3,7 @@ import tracardiPlugin from './tracardi'
 
 const analytics = Analytics({
     app: 'app-name',
+    debug: true,
     plugins: [
         tracardiPlugin(options)
     ]

@@ -20,7 +20,7 @@ export default function tracardiPlugin(options) {
     const pageEventList = EventsList(null);
     const cookieName = 'tracardi-session-id';
     const profileName = 'tracardi-profile-id';
-    const profileId = getItem(profileName)
+    let profileId = getItem(profileName)
     let sessionId = getCookie(cookieName);
     if (!sessionId) {
         sessionId = uuid4();
@@ -30,10 +30,29 @@ export default function tracardiPlugin(options) {
     let singleApiCall = {}
 
     return {
-        name: 'tracardi-plugin',
+        name: 'tracardi',
 
         config: {
             tracker: options.tracker
+        },
+        methods: {
+            consent(type, granted) {
+                request(
+                    {
+                        method: "POST",
+                        url: window.config.tracker.url.api + '/consent',
+                        data: {
+                            profile: {
+                                id: profileId
+                            },
+                            consent: {
+                                id: type,
+                                granted: granted
+                            }
+                        }
+                    }
+                );
+            },
         },
         initializeStart: ({abort, config}) => {
 
@@ -64,7 +83,7 @@ export default function tracardiPlugin(options) {
         },
         initialize: ({config}) => {
 
-            console.debug("Plugin init", config)
+            console.debug("[Tracker] Plugin init", config)
 
             singleApiCall = {
                 page: false,
@@ -75,11 +94,6 @@ export default function tracardiPlugin(options) {
                 console.error("[Tracker] Cookies disabled.");
                 return;
             }
-
-            // if (typeof config == 'undefined' || typeof config.tracker == 'undefined' || typeof config.tracker.source === 'undefined') {
-            //     console.error("[Tracker] config.tracker.source undefined.");
-            //     return;
-            // }
 
             window.config = config
 
@@ -106,17 +120,8 @@ export default function tracardiPlugin(options) {
 
             initEventList.add(event.build(payload))
         },
-        initializeEnd: () => {
-            request(
-                {
-                    method: "POST",
-                    url: window.config.tracker.url.api + '/init',
-                    data: initEventList.get()
-                }
-            );
-        },
         page: ({payload}) => {
-            console.log("Event page", payload);
+            console.debug("[Tracker] Event page", payload);
 
             if (typeof config == 'undefined' || typeof config.tracker == 'undefined' || typeof config.tracker.source === 'undefined') {
                 console.error("[Tracker] config.tracker.source undefined.");
@@ -152,14 +157,7 @@ export default function tracardiPlugin(options) {
         },
 
         track: ({payload}) => {
-            console.log("Event track", payload);
-
-            // if (typeof config == 'undefined' ||
-            //     typeof config.tracker == 'undefined' ||
-            //     typeof config.tracker.source === 'undefined') {
-            //     console.error("[Tracker] config.tracker.source undefined.");
-            //     return;
-            // }
+            console.debug("[Tracker] Event track", payload);
 
             const eventPayload = {
                 type: payload.event,
@@ -178,14 +176,7 @@ export default function tracardiPlugin(options) {
             trackEventList.add(event.build(eventPayload));
         },
         identify: ({payload}) => {
-            console.log("Event identify", payload)
-
-            // if (typeof config == 'undefined' ||
-            //     typeof config.tracker == 'undefined' ||
-            //     typeof config.tracker.source === 'undefined') {
-            //     console.error("[Tracker] config.tracker.source undefined.");
-            //     return;
-            // }
+            console.debug("[Tracker] Event identify", payload)
 
             const eventPayload = {
                 type: payload.event,
@@ -207,72 +198,75 @@ export default function tracardiPlugin(options) {
             // return boolean so analytics knows when it can send data to third party
             return !!window.tracardi
         },
+        initializeEnd: () => {
+            request(
+                {
+                    method: "POST",
+                    url: window.config.tracker.url.api + '/init',
+                    data: initEventList.get(),
+                    onSuccess: (response) => {
+
+                        // Set profile id
+                        profileId = response.data.profile.id
+                        setItem(profileName, profileId);
+
+                        if(typeof response.data.source.consent === "undefined" || response.data.source.consent===null) {
+                            console.log("[Tracker] No consent defined.");
+                            return;
+                        }
+
+                        if(typeof response.data.source.consent.required === "undefined") {
+                            console.log("[Tracker] No consent requirement defined.");
+                            return;
+                        }
+
+                        if(response.data.source.consent.required) {
+                            console.log(response.data.source.consent);
+                            if(typeof response.data.source.consent.box !== "undefined" &&
+                                typeof response.data.source.consent.box.id !== "undefined") {
+                                documentReady(() => {
+                                    const consentBox = document.getElementById(response.data.source.consent.box.id);
+                                    if(consentBox) {
+                                        consentBox.style.display = "block";
+                                    }
+                                })
+                            } else {
+                                console.log("[Tracker] No consent.box.id defined.")
+                            }
+
+                        }
+                    }
+                }
+            );
+        },
         trackEnd: () => {
             if (!singleApiCall.tracks) {
                 singleApiCall.tracks = true;
-                console.log('trackEnd');
-                console.log(trackEventList.get());
+                console.debug('[Tracker] TrackEnd');
+                console.debug(trackEventList.get());
 
-                // if (typeof window.config !== "undefined" &&
-                //     typeof window.config.tracker !== "undefined" &&
-                //     typeof window.config.tracker.url !== "undefined" &&
-                //     typeof window.config.tracker.url.api !== "undefined"
-                // ) {
+                request(
+                    {
+                        method: "POST",
+                        url: window.config.tracker.url.api + '/track',
+                        data: trackEventList.get()
+                    }
+                );
 
-                    request(
-                        {
-                            method: "POST",
-                            url: window.config.tracker.url.api + '/track',
-                            data: trackEventList.get()
-                        }
-                    );
-
-                    // axios.post(
-                    //     window.config.tracker.url + '/track',
-                    //     trackEventList.get()
-                    // ).then(
-                    //     (response) => {
-                    //         console.log(response)
-                    //     }
-                    // ).catch((e) => {
-                    //     console.log(e)
-                    // })
-                // } else {
-                //     console.error("[Tracker] Event tracks:* not sent. Undefined options.tracker.url");
-                // }
             }
         },
         pageEnd: () => {
             if (!singleApiCall.page) {
                 singleApiCall.page = true;
-                console.log("config", window.config)
+                console.debug("[Tracker] Config", window.config)
 
-                // if (typeof window.config !== "undefined" &&
-                //     typeof window.config.tracker !== "undefined" &&
-                //     typeof window.config.tracker.url !== "undefined" &&
-                //     typeof window.config.tracker.url.api !== "undefined") {
-
-                    request(
-                        {
-                            method: "POST",
-                            url: window.config.tracker.url.api + '/page',
-                            data: pageEventList.get()
-                        }
-                    )
-
-                    // axios.post(
-                    //     window.config.tracker.url + '/page',
-                    //     pageEventList.get()
-                    // ).then(
-                    //     (response) => {
-                    //         console.log(response)
-                    //     }
-                    // ).catch((e) => {
-                    //     console.error("[Tracardi] " + e.toString())
-                    // })
-                // } else {
-                //     console.error("[Tracker] Event page:view not sent. Undefined options.tracker.url");
-                // }
+                request(
+                    {
+                        method: "POST",
+                        url: window.config.tracker.url.api + '/page',
+                        data: pageEventList.get()
+                    }
+                )
             }
         }
     }
