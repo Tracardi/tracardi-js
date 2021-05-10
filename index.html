@@ -6,8 +6,8 @@
 
                 tracker: {
                     url: {
-                        script: 'http://localhost:8001/tracker',
-                        api: 'http://localhost:8001'
+                        script: 'dist/tracker.js',
+                        // api: 'http://localhost:8001'
                     },
                     source: {
                         id: "mobile-app"
@@ -18,83 +18,8 @@
                 }
             }
 
-            window.tracker || (window.tracker = {});
-            (function () {
+            !function(e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define([],e):("undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this).tracardi=e()}(function(){return function n(o,i,a){function c(r,e){if(!i[r]){if(!o[r]){var t="function"==typeof require&&require;if(!e&&t)return t(r,!0);if(d)return d(r,!0);throw(t=new Error("Cannot find module '"+r+"'")).code="MODULE_NOT_FOUND",t}t=i[r]={exports:{}},o[r][0].call(t.exports,function(e){return c(o[r][1][e]||e)},t,t.exports,n,o,i,a)}return i[r].exports}for(var d="function"==typeof require&&require,e=0;e<a.length;e++)c(a[e]);return c}({1:[function(e,r,t){"use strict";window.tracker||(window.tracker={}),function(){for(var t=[],n="tracker.min.js",e=["track","page","identify"],r=0;r<e.length;r++){var o=e[r];window.tracker[o]=function(r){return function(){var e=Array.prototype.slice.call(arguments);return e.unshift(r),t.push(e),window.tracker}}(o)}function i(){if(console.debug("[Tracker] Rerun callbacks."),window.tracardi.default.getState().plugins["tracardi-plugin"].initialized)for(window.tracker=window.tracardi.default;0<t.length;){var e=t.shift(),r=e.shift();tracker[r]&&tracker[r].apply(tracker,e)}else console.error("[Tracardi] Callbacks stopped. Tracker not initialized.")}document.addEventListener("DOMContentLoaded",function(){var e,r=document.createElement("script");r.type="text/javascript",r.async=!0,void 0!==options.tracker||void 0!==options.tracker.url||void 0!==options.tracker.url.script?(null!==options.tracker.url.script?options.tracker.url.script.startsWith("http")?r.src=options.tracker.url.script+"/"+n:r.src=options.tracker.url.script:r.src=n,console.debug("[Tracker] Loading: "+r.src),r.addEventListener?r.addEventListener("load",function(e){i()},!1):r.onreadystatechange=function(){"complete"!==this.readyState&&"loaded"!==this.readyState||i(window.event)},(e=document.getElementsByTagName("script")[0]).parentNode.insertBefore(r,e)):console.error("[Tracker] Undefined options.tracker.url.script. This url defines location of tracker code.")})}()},{}]},{},[1])(1)});
 
-                const trackerQueue = [];
-                const tracker_path = 'tracker.min.js';
-                const methods = ['track', 'page', 'identify'];
-
-                const factory = function (method) {
-                    return function () {
-                        let args = Array.prototype.slice.call(arguments);
-                        args.unshift(method);
-                        trackerQueue.push(args);
-                        return window.tracker;
-                    };
-                };
-
-                // For each of our methods, generate a queueing stub.
-                for (let i = 0; i < methods.length; i++) {
-                    let method = methods[i];
-                    window.tracker[method] = factory(method);
-                }
-
-                function callback(e) {
-                    console.debug("[Tracker] Rerun callbacks.")
-                    // Now window.tracardi.default is present
-                    console.log(e)
-                    window.tracker = window.tracardi.default
-                    while (trackerQueue.length > 0) {
-                        const item = trackerQueue.shift();
-                        const method = item.shift();
-                        if (tracker[method]) {
-                            tracker[method].apply(tracker, item);
-                        }
-                    }
-                }
-
-                document.addEventListener('DOMContentLoaded', function () {
-                    let script = document.createElement('script');
-                    script.type = 'text/javascript';
-                    script.async = true;
-
-                    if(typeof options.tracker === "undefined" &&
-                        typeof options.tracker.url === "undefined" &&
-                        typeof options.tracker.url.script === "undefined") {
-                        console.error("[Tracker] Undefined options.tracker.url.script. This url defines location of tracker code.");
-                        return;
-                    }
-
-                    if (options.tracker.url.script !== null) {
-                        if (options.tracker.url.script.startsWith("http")) {
-                            script.src = options.tracker.url.script + '/' + tracker_path;
-                        } else {
-                            script.src = options.tracker.url.script
-                        }
-                    } else {
-                        script.src = tracker_path;
-                    }
-                    console.debug("[Tracker] Loading: " + script.src);
-
-                    if (script.addEventListener) {
-                        script.addEventListener('load', function (e) {
-                            if (typeof callback === 'function') {
-                                callback(e);
-                            }
-                        }, false);
-                    } else {
-                        script.onreadystatechange = function () {
-                            if (this.readyState === 'complete' || this.readyState === 'loaded') {
-                                callback(window.event);
-                            }
-                        };
-                    }
-
-                    let first = document.getElementsByTagName('script')[0];
-                    first.parentNode.insertBefore(script, first);
-                });
-            })();
         </script>
         <script>
             window.tracker.page({"page":1})

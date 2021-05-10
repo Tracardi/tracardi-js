@@ -23,7 +23,10 @@ window.tracker || (window.tracker = {});
     function callback(e) {
         console.debug("[Tracker] Rerun callbacks.")
         // Now window.tracardi.default is present
-        console.log(e)
+        if(!window.tracardi.default.getState().plugins['tracardi-plugin'].initialized) {
+            console.error("[Tracardi] Callbacks stopped. Tracker not initialized.");
+            return;
+        }
         window.tracker = window.tracardi.default
         while (trackerQueue.length > 0) {
             const item = trackerQueue.shift();

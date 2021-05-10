@@ -1,6 +1,5 @@
-import axios from 'axios';
-import { getCookie, setCookie, hasCookieSupport } from '@analytics/cookie-utils';
-import { v4 as uuid4 } from 'uuid';
+import {getCookie, setCookie, hasCookieSupport} from '@analytics/cookie-utils';
+import {v4 as uuid4} from 'uuid';
 import Event from './domain/event';
 import ClientInfo from './domain/clientInfo';
 import EventsList from './domain/eventsList';
@@ -23,9 +22,9 @@ export default function tracardiPlugin(options) {
     const profileName = 'tracardi-profile-id';
     const profileId = getItem(profileName)
     let sessionId = getCookie(cookieName);
-    if(!sessionId) {
+    if (!sessionId) {
         sessionId = uuid4();
-        const expires = 60*60*31*30;
+        const expires = 60 * 60 * 31 * 30;
         setCookie(cookieName, sessionId, expires);
     }
     let singleApiCall = {}
@@ -36,7 +35,34 @@ export default function tracardiPlugin(options) {
         config: {
             tracker: options.tracker
         },
-        initialize: ({ config }) => {
+        initializeStart: ({abort, config}) => {
+
+            if (typeof config === "undefined") {
+                console.error(" because config is undefined.");
+                return abort('Cancel the initialize call because of config is undefined.');
+            }
+
+            if (typeof config.tracker == 'undefined') {
+                console.error("[Tracker] Tracker init stopped because config.tracker is undefined.");
+                return abort('Cancel the initialize call because of config.tracker.source is undefined.');
+            }
+
+            if (typeof config.tracker.source === 'undefined') {
+                console.error("[Tracker] Tracker init stopped because config.tracker.source is undefined.");
+                return abort('Cancel the initialize call because of config.tracker.source is undefined.');
+            }
+
+            if (typeof config.tracker.url === "undefined") {
+                console.error("[Tracker] Tracker init stopped because config.tracker.url is undefined.");
+                return abort('Cancel the initialize call because of config.tracker.url is undefined.');
+            }
+
+            if (typeof config.tracker.url.api === "undefined") {
+                console.error("[Tracker] Tracker init stopped because config.tracker.url.api is undefined.");
+                return abort('Cancel the initialize call because of config.tracker.url.api s undefined.');
+            }
+        },
+        initialize: ({config}) => {
 
             console.debug("Plugin init", config)
 
@@ -45,15 +71,15 @@ export default function tracardiPlugin(options) {
                 tracks: false
             }
 
-            if(!hasCookieSupport()) {
+            if (!hasCookieSupport()) {
                 console.error("[Tracker] Cookies disabled.");
                 return;
             }
 
-            if(typeof config == 'undefined' || typeof config.tracker == 'undefined' || typeof config.tracker.source === 'undefined') {
-                console.error("[Tracker] config.tracker.source undefined.");
-                return;
-            }
+            // if (typeof config == 'undefined' || typeof config.tracker == 'undefined' || typeof config.tracker.source === 'undefined') {
+            //     console.error("[Tracker] config.tracker.source undefined.");
+            //     return;
+            // }
 
             window.config = config
 
@@ -72,51 +98,27 @@ export default function tracardiPlugin(options) {
                 }
             }
 
-            if(typeof window.config !== "undefined"  &&
+            if (typeof window.config !== "undefined" &&
                 typeof window.config.tracker !== "undefined" &&
                 typeof window.config.tracker.init !== "undefined") {
-                    Object.assign(payload, {properties: window.config.tracker.init})
+                Object.assign(payload, {properties: window.config.tracker.init})
             }
 
             initEventList.add(event.build(payload))
-
-            // console.log("payload", payload)
-            // console.log("copy")
-            // console.log(initEventList.get())
-
-            if(typeof window.config !== "undefined"  &&
-                typeof window.config.tracker !== "undefined" &&
-                typeof window.config.tracker.url !== "undefined" &&
-                typeof window.config.tracker.url.api !== "undefined") {
-                    request(
-                        {
-                            method: "POST",
-                            url: window.config.tracker.url.api + '/init',
-                            data: initEventList.get()
-                        }
-                    );
-                    // axios.post(
-                    //     window.config.tracker.url + '/init',
-                    //     initEventList.get()
-                    // ).then(
-                    //     (response) => {
-                    //         console.log(response.data.profile)
-                    //         setItem(profileName, response.data.profile.id)
-                    //         // todo raise event onContextReady
-                    //     }
-                    // ).catch((e) => {
-                    //     console.log(e)
-                    // });
-            } else {
-                console.error("[Tracker] Event initialize:sessionCreated not sent. Undefined options.tracker.url");
-            }
-
-
         },
-        page: ({ payload }) => {
-            console.log("Event page",payload);
+        initializeEnd: () => {
+            request(
+                {
+                    method: "POST",
+                    url: window.config.tracker.url.api + '/init',
+                    data: initEventList.get()
+                }
+            );
+        },
+        page: ({payload}) => {
+            console.log("Event page", payload);
 
-            if(typeof config == 'undefined' || typeof config.tracker == 'undefined' || typeof config.tracker.source === 'undefined') {
+            if (typeof config == 'undefined' || typeof config.tracker == 'undefined' || typeof config.tracker.source === 'undefined') {
                 console.error("[Tracker] config.tracker.source undefined.");
                 return;
             }
@@ -149,15 +151,15 @@ export default function tracardiPlugin(options) {
             pageEventList.add(event.build(eventPayload));
         },
 
-        track: ({ payload }) => {
+        track: ({payload}) => {
             console.log("Event track", payload);
 
-            if(typeof config == 'undefined' ||
-                typeof config.tracker == 'undefined' ||
-                typeof config.tracker.source === 'undefined') {
-                console.error("[Tracker] config.tracker.source undefined.");
-                return;
-            }
+            // if (typeof config == 'undefined' ||
+            //     typeof config.tracker == 'undefined' ||
+            //     typeof config.tracker.source === 'undefined') {
+            //     console.error("[Tracker] config.tracker.source undefined.");
+            //     return;
+            // }
 
             const eventPayload = {
                 type: payload.event,
@@ -175,15 +177,15 @@ export default function tracardiPlugin(options) {
             }
             trackEventList.add(event.build(eventPayload));
         },
-        identify: ({ payload }) => {
-            console.log("Event identify",payload)
+        identify: ({payload}) => {
+            console.log("Event identify", payload)
 
-            if(typeof config == 'undefined' ||
-                typeof config.tracker == 'undefined' ||
-                typeof config.tracker.source === 'undefined') {
-                console.error("[Tracker] config.tracker.source undefined.");
-                return;
-            }
+            // if (typeof config == 'undefined' ||
+            //     typeof config.tracker == 'undefined' ||
+            //     typeof config.tracker.source === 'undefined') {
+            //     console.error("[Tracker] config.tracker.source undefined.");
+            //     return;
+            // }
 
             const eventPayload = {
                 type: payload.event,
@@ -206,16 +208,16 @@ export default function tracardiPlugin(options) {
             return !!window.tracardi
         },
         trackEnd: () => {
-            if(!singleApiCall.tracks) {
+            if (!singleApiCall.tracks) {
                 singleApiCall.tracks = true;
                 console.log('trackEnd');
                 console.log(trackEventList.get());
 
-                if(typeof window.config !== "undefined"  &&
-                    typeof window.config.tracker !== "undefined" &&
-                    typeof window.config.tracker.url !== "undefined" &&
-                    typeof window.config.tracker.url.api !== "undefined"
-                ) {
+                // if (typeof window.config !== "undefined" &&
+                //     typeof window.config.tracker !== "undefined" &&
+                //     typeof window.config.tracker.url !== "undefined" &&
+                //     typeof window.config.tracker.url.api !== "undefined"
+                // ) {
 
                     request(
                         {
@@ -235,20 +237,20 @@ export default function tracardiPlugin(options) {
                     // ).catch((e) => {
                     //     console.log(e)
                     // })
-                } else {
-                    console.error("[Tracker] Event tracks:* not sent. Undefined options.tracker.url");
-                }
+                // } else {
+                //     console.error("[Tracker] Event tracks:* not sent. Undefined options.tracker.url");
+                // }
             }
         },
         pageEnd: () => {
-            if(!singleApiCall.page) {
+            if (!singleApiCall.page) {
                 singleApiCall.page = true;
                 console.log("config", window.config)
 
-                if(typeof window.config !== "undefined"  &&
-                    typeof window.config.tracker !== "undefined" &&
-                    typeof window.config.tracker.url !== "undefined" &&
-                    typeof window.config.tracker.url.api !== "undefined") {
+                // if (typeof window.config !== "undefined" &&
+                //     typeof window.config.tracker !== "undefined" &&
+                //     typeof window.config.tracker.url !== "undefined" &&
+                //     typeof window.config.tracker.url.api !== "undefined") {
 
                     request(
                         {
@@ -268,9 +270,9 @@ export default function tracardiPlugin(options) {
                     // ).catch((e) => {
                     //     console.error("[Tracardi] " + e.toString())
                     // })
-                } else {
-                    console.error("[Tracker] Event page:view not sent. Undefined options.tracker.url");
-                }
+                // } else {
+                //     console.error("[Tracker] Event page:view not sent. Undefined options.tracker.url");
+                // }
             }
         }
     }
