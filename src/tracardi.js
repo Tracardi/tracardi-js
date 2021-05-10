@@ -5,6 +5,7 @@ import Event from './domain/event';
 import ClientInfo from './domain/clientInfo';
 import EventsList from './domain/eventsList';
 import {getItem, setItem} from "@analytics/storage-utils";
+import {request} from "./api_call";
 
 
 export default function tracardiPlugin(options) {
@@ -33,7 +34,6 @@ export default function tracardiPlugin(options) {
         name: 'tracardi-plugin',
 
         config: {
-            url: options.url,
             tracker: options.tracker
         },
         initialize: ({ config }) => {
@@ -86,19 +86,27 @@ export default function tracardiPlugin(options) {
 
             if(typeof window.config !== "undefined"  &&
                 typeof window.config.tracker !== "undefined" &&
-                typeof window.config.tracker.url !== "undefined") {
-                    axios.post(
-                        window.config.tracker.url + '/init',
-                        initEventList.get()
-                    ).then(
-                        (response) => {
-                            console.log(response.data.profile)
-                            setItem(profileName, response.data.profile.id)
-                            // todo raise event onContextReady
+                typeof window.config.tracker.url !== "undefined" &&
+                typeof window.config.tracker.url.api !== "undefined") {
+                    request(
+                        {
+                            method: "POST",
+                            url: window.config.tracker.url.api + '/init',
+                            data: initEventList.get()
                         }
-                    ).catch((e) => {
-                        console.log(e)
-                    });
+                    );
+                    // axios.post(
+                    //     window.config.tracker.url + '/init',
+                    //     initEventList.get()
+                    // ).then(
+                    //     (response) => {
+                    //         console.log(response.data.profile)
+                    //         setItem(profileName, response.data.profile.id)
+                    //         // todo raise event onContextReady
+                    //     }
+                    // ).catch((e) => {
+                    //     console.log(e)
+                    // });
             } else {
                 console.error("[Tracker] Event initialize:sessionCreated not sent. Undefined options.tracker.url");
             }
@@ -144,7 +152,9 @@ export default function tracardiPlugin(options) {
         track: ({ payload }) => {
             console.log("Event track", payload);
 
-            if(typeof config == 'undefined' || typeof config.tracker == 'undefined' || typeof config.tracker.source === 'undefined') {
+            if(typeof config == 'undefined' ||
+                typeof config.tracker == 'undefined' ||
+                typeof config.tracker.source === 'undefined') {
                 console.error("[Tracker] config.tracker.source undefined.");
                 return;
             }
@@ -168,7 +178,9 @@ export default function tracardiPlugin(options) {
         identify: ({ payload }) => {
             console.log("Event identify",payload)
 
-            if(typeof config == 'undefined' || typeof config.tracker == 'undefined' || typeof config.tracker.source === 'undefined') {
+            if(typeof config == 'undefined' ||
+                typeof config.tracker == 'undefined' ||
+                typeof config.tracker.source === 'undefined') {
                 console.error("[Tracker] config.tracker.source undefined.");
                 return;
             }
@@ -190,7 +202,6 @@ export default function tracardiPlugin(options) {
             identifyEventList.add(event.build(eventPayload));
         },
         loaded: () => {
-            console.debug("Plugin loaded")
             // return boolean so analytics knows when it can send data to third party
             return !!window.tracardi
         },
@@ -202,17 +213,28 @@ export default function tracardiPlugin(options) {
 
                 if(typeof window.config !== "undefined"  &&
                     typeof window.config.tracker !== "undefined" &&
-                    typeof window.config.tracker.url !== "undefined") {
-                    axios.post(
-                        window.config.tracker.url + '/track',
-                        trackEventList.get()
-                    ).then(
-                        (response) => {
-                            console.log(response)
+                    typeof window.config.tracker.url !== "undefined" &&
+                    typeof window.config.tracker.url.api !== "undefined"
+                ) {
+
+                    request(
+                        {
+                            method: "POST",
+                            url: window.config.tracker.url.api + '/track',
+                            data: trackEventList.get()
                         }
-                    ).catch((e) => {
-                        console.log(e)
-                    })
+                    );
+
+                    // axios.post(
+                    //     window.config.tracker.url + '/track',
+                    //     trackEventList.get()
+                    // ).then(
+                    //     (response) => {
+                    //         console.log(response)
+                    //     }
+                    // ).catch((e) => {
+                    //     console.log(e)
+                    // })
                 } else {
                     console.error("[Tracker] Event tracks:* not sent. Undefined options.tracker.url");
                 }
@@ -225,17 +247,27 @@ export default function tracardiPlugin(options) {
 
                 if(typeof window.config !== "undefined"  &&
                     typeof window.config.tracker !== "undefined" &&
-                    typeof window.config.tracker.url !== "undefined") {
-                    axios.post(
-                        window.config.tracker.url + '/page',
-                        pageEventList.get()
-                    ).then(
-                        (response) => {
-                            console.log(response)
+                    typeof window.config.tracker.url !== "undefined" &&
+                    typeof window.config.tracker.url.api !== "undefined") {
+
+                    request(
+                        {
+                            method: "POST",
+                            url: window.config.tracker.url.api + '/page',
+                            data: pageEventList.get()
                         }
-                    ).catch((e) => {
-                        console.log(e)
-                    })
+                    )
+
+                    // axios.post(
+                    //     window.config.tracker.url + '/page',
+                    //     pageEventList.get()
+                    // ).then(
+                    //     (response) => {
+                    //         console.log(response)
+                    //     }
+                    // ).catch((e) => {
+                    //     console.error("[Tracardi] " + e.toString())
+                    // })
                 } else {
                     console.error("[Tracker] Event page:view not sent. Undefined options.tracker.url");
                 }

@@ -23,7 +23,7 @@
   "scripts": {
     "build": "yarn tracker:browserify && yarn tracker:minify && yarn loader:browserify && yarn loader:minify ",
     "tracker:browserify": "browserify -t [ babelify --presets [ es2015 ] ] src/index.js -s tracardi -o dist/tracker.js",
-    "tracker:minify": "cd dist && uglifyjs -c -m -o tracker.min.js -- tracker.js",
+    "tracker:minify": "cd dist && uglifyjs -c -m -o tracker.min.js --source-map url=loader.min.js.map -- tracker.js",
     "loader:browserify": "browserify -t [ babelify --presets [ es2015 ] ] src/loader.js -s tracardi -o dist/loader.js",
     "loader:minify": "cd dist && uglifyjs -c -m -o loader.min.js --source-map url=loader.min.js.map -- loader.js",
     "clean": "rimraf *.log dist/*",

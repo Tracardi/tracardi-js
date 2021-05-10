@@ -2,7 +2,7 @@ window.tracker || (window.tracker = {});
 (function () {
 
     const trackerQueue = [];
-
+    const tracker_path = 'tracker.min.js';
     const methods = ['track', 'page', 'identify'];
 
     const factory = function (method) {
@@ -21,8 +21,9 @@ window.tracker || (window.tracker = {});
     }
 
     function callback(e) {
-        console.debug("Rerun callbacks")
+        console.debug("[Tracker] Rerun callbacks.")
         // Now window.tracardi.default is present
+        console.log(e)
         window.tracker = window.tracardi.default
         while (trackerQueue.length > 0) {
             const item = trackerQueue.shift();
@@ -37,12 +38,24 @@ window.tracker || (window.tracker = {});
         let script = document.createElement('script');
         script.type = 'text/javascript';
         script.async = true;
-        if (options.url !== null) {
-            script.src = options.url + '/dist/tracker.js';
-        } else {
-            script.src = 'dist/tracker.js';
+
+        if(typeof options.tracker === "undefined" &&
+            typeof options.tracker.url === "undefined" &&
+            typeof options.tracker.url.script === "undefined") {
+            console.error("[Tracker] Undefined options.tracker.url.script. This url defines location of tracker code.");
+            return;
         }
 
+        if (options.tracker.url.script !== null) {
+            if (options.tracker.url.script.startsWith("http")) {
+                script.src = options.tracker.url.script + '/' + tracker_path;
+            } else {
+                script.src = options.tracker.url.script
+            }
+        } else {
+            script.src = tracker_path;
+        }
+        console.debug("[Tracker] Loading: " + script.src);
 
         if (script.addEventListener) {
             script.addEventListener('load', function (e) {
