@@ -7,7 +7,7 @@
                 tracker: {
                     url: {
                         script: 'dist/tracker.js',
-                        // api: 'http://localhost:8001'
+                        api: 'http://localhost:8002'
                     },
                     source: {
                         id: "mobile-app"
@@ -22,12 +22,12 @@
 
         </script>
         <script>
-            window.tracker.page({"page":1})
             window.tracker.track("xxx1", {"a":1})
             window.tracker.track("xxx2", {"a":2})
             window.tracker.track("xxx3", {"a":3})
             window.tracker.identify("user-id-1", {"a":1})
             window.tracker.identify("user-id-2", {"a":2})
+            window.tracker.page({"page":1})
         </script>
     </head>
     <body>
