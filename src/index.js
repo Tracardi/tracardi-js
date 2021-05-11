@@ -7,6 +7,6 @@ const analytics = Analytics({
     plugins: [
         tracardiPlugin(options)
     ]
-})
+});
 
 export default analytics;

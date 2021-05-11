@@ -31,9 +31,9 @@ export default function EventsList(container) {
 
         reset: () => {
             if(container !== null) {
-                container = {};
+                container = {events: null};
             } else {
-                store =null;
+                store = null;
             }
         }
     }

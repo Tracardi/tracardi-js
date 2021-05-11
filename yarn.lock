@@ -14,6 +14,11 @@
   dependencies:
     analytics-utils "^0.4.4"
 
+"@analytics/listener-utils@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@analytics/listener-utils/-/listener-utils-0.1.0.tgz#2e4b0215edccafa80cd58a0ddb12c49fbf5b7851"
+  integrity sha512-EFGFV7Gq0MhXbukx6LUGbIIXSUasWtzKjOQFFceEGd0Xj0qavsca81ryFtMWGgaLAM5RPQQ/KsuHYiM277x8OA==
+
 "@analytics/storage-utils@^0.2.5":
   version "0.2.5"
   resolved "https://registry.yarnpkg.com/@analytics/storage-utils/-/storage-utils-0.2.5.tgz#bc82a1b5dea8e47ae18718aae687c3408ae7c504"
