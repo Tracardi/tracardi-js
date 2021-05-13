@@ -7,10 +7,19 @@
                 onContextReady: ({helpers}) => {
                     console.log(helpers)
                     document.getElementById('change-me').innerText = "Loaded";
-                    const btn = document.querySelector('#my-button')
-                    const a = helpers.onClick(btn, ()=> {
+                    const btn1 = document.querySelector('#my-button')
+                    helpers.onClick(btn1, ()=> {
                         helpers.track("test", {"test":1});
                         document.getElementById('change-me').innerText = "Changed";
+                    })
+
+                    const btn2 = document.querySelector('#consent-all')
+                    helpers.onClick(btn2, ()=> {
+                        helpers.track("consent", {
+                            "id":"consent-type",
+                            "granted": true,
+                            'revoke': null
+                        });
                     })
                 },
                 onConsentRequired: () => {
@@ -23,7 +32,7 @@
             tracker: {
                 url: {
                     script: 'dist/tracker.js',
-                    api: 'http://localhost:8002'
+                    api: 'http://localhost:8001'
                 },
                 source: {
                     id: "mobile-app"
@@ -38,26 +47,13 @@
 
     </script>
     <script>
-        window.tracker.track("xxx1", {"a": 1})
+        window.tracker.track("xxx1", {"a": 222, "aaa2":3})
         window.tracker.track("xxx2", {"a": 2})
         window.tracker.track("xxx3", {"a": 3})
         window.tracker.identify("user-id-1", {"a": 1})
         window.tracker.identify("user-id-2", {"a": 2})
         window.tracker.page({"page": 1});
         console.log(window)
-    </script>
-    <script>
-        function clk() {
-            window.tracker.plugins.tracardi.consent("all", true);
-            document.getElementById('consentBox').style.display = 'none';
-            window.tracker.plugins.tracardi.consentSubmitted();
-        }
-
-        function clk1() {
-            console.log("222");
-            console.log(window.tracardi.default)
-            window.tracker.track("all", {C: 1}, {fire: true});
-        }
     </script>
     <style>
         .consent {
@@ -86,7 +82,6 @@ Test
         <p>Some text in the Modal..</p>
         <button id="consent-all">Allow all</button>
         <button id="my-button">bind</button>
-        <button id="my-button1" onclick="clk1()">xxx</button>
     </div>
 </div>
 

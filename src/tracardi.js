@@ -106,7 +106,9 @@ export default function tracardiPlugin(options) {
                     time: clientInfo.time(),
                 },
                 session: {id: sessionId},
-                profile: {id: profileId},
+                profile: (profileId != null)
+                    ? {id: profileId}
+                    : null,
                 context: {
                     browser: clientInfo.browser(),
                     storage: clientInfo.storage(),
@@ -147,7 +149,9 @@ export default function tracardiPlugin(options) {
                     time: clientInfo.time(),
                 },
                 session: {id: sessionId},
-                profile: {id: profileId},
+                profile: (profileId != null)
+                    ? {id: profileId}
+                    : null,
                 context: {
                     page: pageInfo,
                     screen: clientInfo.screen(),
@@ -172,7 +176,9 @@ export default function tracardiPlugin(options) {
                     time: clientInfo.time(),
                 },
                 session: {id: sessionId},
-                profile: {id: profileId},
+                profile: (profileId != null)
+                    ? {id: profileId}
+                    : null,
                 context: {
                     page: pageInfo,
                 },
@@ -191,7 +197,9 @@ export default function tracardiPlugin(options) {
                     time: clientInfo.time(),
                 },
                 session: {id: sessionId},
-                profile: {id: profileId},
+                profile: (profileId != null)
+                    ? {id: profileId}
+                    : null,
                 context: {
                     page: pageInfo,
                 },
