@@ -45,14 +45,6 @@ export default function ClientInfo() {
 
     return {
 
-        time: () => {
-            const now = new Date();
-            return {
-                now: new Date(now.getTime() - 60000 * now.getTimezoneOffset()),
-                utc: now.getTimezoneOffset() / 60,
-            }
-        },
-
         page: () => {
             return {
                 url: location.href,

@@ -102,9 +102,6 @@ export default function tracardiPlugin(options) {
             let payload = {
                 type: "sessionCreated",
                 source: config.tracker.source,
-                metadata: {
-                    time: clientInfo.time(),
-                },
                 session: {id: sessionId},
                 profile: (profileId != null)
                     ? {id: profileId}
@@ -145,9 +142,6 @@ export default function tracardiPlugin(options) {
             const eventPayload = {
                 type: "view",
                 source: config.tracker.source,
-                metadata: {
-                    time: clientInfo.time(),
-                },
                 session: {id: sessionId},
                 profile: (profileId != null)
                     ? {id: profileId}
@@ -172,9 +166,6 @@ export default function tracardiPlugin(options) {
             const eventPayload = {
                 type: payload.event,
                 source: config.tracker.source,
-                metadata: {
-                    time: clientInfo.time(),
-                },
                 session: {id: sessionId},
                 profile: (profileId != null)
                     ? {id: profileId}
@@ -193,9 +184,6 @@ export default function tracardiPlugin(options) {
             const eventPayload = {
                 type: payload.event,
                 source: config.tracker.source,
-                metadata: {
-                    time: clientInfo.time(),
-                },
                 session: {id: sessionId},
                 profile: (profileId != null)
                     ? {id: profileId}
@@ -252,9 +240,9 @@ export default function tracardiPlugin(options) {
                             }
 
                             // onConsentRequired
-                            if (typeof response.data.source.consent !== "undefined" && response.data.source.consent !== null) {
-                                if (typeof response.data.source.consent.required !== "undefined") {
-                                    if (response.data.source.consent.required === true && !isConsentGiven) {
+                            if (typeof response.data.source.consents !== "undefined" && response.data.source.consents !== null) {
+                                if (typeof response.data.source.consents.required !== "undefined") {
+                                    if (response.data.source.consents.required === true && !isConsentGiven) {
                                         if (typeof config.listeners.onConsentRequired !== "undefined") {
                                             const onConsentRequired = config.listeners.onConsentRequired
 
