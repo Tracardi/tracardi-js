@@ -15,7 +15,6 @@ export default function tracardiPlugin(options) {
     const tracks = {};
     let isCookieSet = true
     const trackEventList = EventsList(tracks);
-    const initEventList = EventsList(null);
     const cookieName = 'tracardi-session-id';
     const profileName = 'tracardi-profile-id';
     const consentKey = 'tracardi-consent-id';
@@ -48,7 +47,6 @@ export default function tracardiPlugin(options) {
             addListener: (object, event, func) => {
                 return addListener(object, event, func);
             },
-
             consentSubmitted() {
                 setItem(consentKey, profileId);
             }
