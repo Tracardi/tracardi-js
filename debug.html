@@ -3,40 +3,13 @@
     <title>My title222</title>
     <script>
         const options = {
-            listeners: {
-                onContextReady: ({helpers}) => {
-                    console.log(helpers)
-                    document.getElementById('change-me').innerText = "Loaded";
-                    const btn1 = document.querySelector('#my-button')
-                    helpers.onClick(btn1, ()=> {
-                        helpers.track("test", {"test":1});
-                        document.getElementById('change-me').innerText = "Changed";
-                    })
-
-                    const btn2 = document.querySelector('#consent-all')
-                    helpers.onClick(btn2, ()=> {
-                        helpers.track("consent", {
-                            "id":"consent-type",
-                            "granted": true,
-                            'revoke': null
-                        });
-                        helpers.consentSubmitted()
-                    })
-                },
-                onConsentRequired: () => {
-                    const consentBox = document.getElementById('consentBox');
-                    if (consentBox) {
-                        consentBox.style.display = "block";
-                    }
-                }
-            },
             tracker: {
                 url: {
-                    script: 'dist/tracker.js',
+                    script: 'http://localhost:8001/tracker',
                     api: 'http://localhost:8001'
                 },
                 source: {
-                    id: "8538394b-92da-4c82-99f8-9169ca7350a8"
+                    id: "8538394b-92da-4c82-99f8-9169ca7350a8s"
                 },
                 init: {
                     mydata: "ddd"

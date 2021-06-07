@@ -137,10 +137,10 @@ export default function tracardiPlugin(options) {
 
             console.debug("[Tracker] Event track", payload);
 
-            const eventPayload = {
+            let eventPayload = {
                 type: payload.event,
                 source: config.tracker.source,
-                user: {id: payload.userId},
+
                 session: {id: sessionId},
                 profile: (profileId != null)
                     ? {id: profileId}
@@ -152,6 +152,9 @@ export default function tracardiPlugin(options) {
                     screen: clientInfo.screen(),
                 },
                 properties: payload.properties,
+            }
+            if(payload.userId) {
+                eventPayload['user'] = {id: payload.userId}
             }
 
             trackEventList.add(event.build(eventPayload));
