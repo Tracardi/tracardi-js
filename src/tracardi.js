@@ -4,8 +4,9 @@ import Event from './domain/event';
 import ClientInfo from './domain/clientInfo';
 import EventsList from './domain/eventsList';
 import {getItem, setItem} from "@analytics/storage-utils";
-import {request} from "./api_call";
+import {request} from "./apiCall";
 import {addListener} from "@analytics/listener-utils";
+import loadJS from "./utils/loadJs";
 
 export default function tracardiPlugin(options) {
 
@@ -219,6 +220,13 @@ export default function tracardiPlugin(options) {
                                     if (typeof onContextReady !== "function") {
                                         throw new TypeError("onContextReady must be a function.");
                                     }
+
+                                    loadJS(
+                                        "src/test.js",
+                                        ()=>{typeof main === "function" && main(response.data)},
+                                        document.body,
+                                        'script'
+                                    )
 
                                     onContextReady({
                                             context: response.data,

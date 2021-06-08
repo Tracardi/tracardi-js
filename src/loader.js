@@ -1,5 +1,5 @@
-import {addListener} from "@analytics/listener-utils";
-import {request} from "./api_call";
+// import {addListener} from "@analytics/listener-utils";
+// import {request} from "./api_call";
 
 (function(funcName, baseObj) {
     "use strict";
@@ -82,7 +82,7 @@ window.tracker || (window.tracker = {});
 
     const trackerQueue = [];
     const tracker_path = 'tracker.min.js';
-    const methods = ['track', 'page', 'identify'];
+    const methods = ['track'];
 
     const factory = function (method) {
         return function () {
