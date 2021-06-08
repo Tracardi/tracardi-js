@@ -12,9 +12,9 @@ export default function tracardiPlugin(options) {
     const clientInfo = ClientInfo();
     const event = Event();
 
-    const tracks = {};
     let isCookieSet = true
-    const trackEventList = EventsList(tracks);
+    const trackEventList = EventsList({});
+    const immediateTrackEventList = EventsList({});
     const cookieName = 'tracardi-session-id';
     const profileName = 'tracardi-profile-id';
     const consentKey = 'tracardi-consent-id';
@@ -140,7 +140,6 @@ export default function tracardiPlugin(options) {
             let eventPayload = {
                 type: payload.event,
                 source: config.tracker.source,
-
                 session: {id: sessionId},
                 profile: (profileId != null)
                     ? {id: profileId}
@@ -153,27 +152,37 @@ export default function tracardiPlugin(options) {
                 },
                 properties: payload.properties,
             }
+
             if(payload.userId) {
                 eventPayload['user'] = {id: payload.userId}
             }
 
-            trackEventList.add(event.build(eventPayload));
-        },
+            if(payload.options) {
+                eventPayload['options'] = payload.options
+            }
 
-        trackEnd: ({config, payload}) => {
             if (typeof payload.options.fire !== "undefined" && payload.options.fire) {
-
+                immediateTrackEventList.add(event.build(eventPayload))
                 request(
                     {
                         method: "POST",
                         url: config.tracker.url.api + '/track',
-                        data: trackEventList.get(),
-
+                        data: immediateTrackEventList.get(),
+                        onSuccess: (response) => {
+                            console.warn("[Tracardi] Tracking with option `fire: true` will not trigger listeners such as onContextReady, onConsentRequired, etc.")
+                        }
                     }
                 );
-                trackEventList.reset();
-            } else if (!singleApiCall.tracks) {
+                immediateTrackEventList.reset()
+            } else {
+                trackEventList.add(event.build(eventPayload));
+            }
+        },
+
+        trackEnd: ({config}) => {
+            if (!singleApiCall.tracks) {
                 singleApiCall.tracks = true;
+
                 console.debug('[Tracker] TrackEnd');
                 console.debug(trackEventList.get());
 
@@ -186,10 +195,15 @@ export default function tracardiPlugin(options) {
 
                             // If browser profile is the same as context profile then consent displayed
                             // Consent is displayed when there is new profile created.
-                            const isConsentGiven = getItem(consentKey) === response.data.profile.id;
-                            console.log(isConsentGiven)
+
+                            if(typeof response.data.context.profile.id === "undefined") {
+                                console.error("[Tracardi] /track must return profile id. No profile id returned.")
+                            }
+
+                            const isConsentGiven = getItem(consentKey) === response.data.context.profile.id;
+
                             // Set profile id
-                            profileId = response.data.profile.id
+                            profileId = response.data.context.profile.id
                             setItem(profileName, profileId);
 
                             documentReady(() => {
@@ -216,25 +230,24 @@ export default function tracardiPlugin(options) {
                                 }
 
                                 // onConsentRequired
-                                if (typeof response.data.source.consents !== "undefined" && response.data.source.consents !== null) {
-                                    if (typeof response.data.source.consents.required !== "undefined") {
-                                        if (response.data.source.consents.required === true && !isConsentGiven) {
-                                            if (typeof config.listeners.onConsentRequired !== "undefined") {
-                                                const onConsentRequired = config.listeners.onConsentRequired
+                                if (typeof response.data.source.consent !== "undefined" && response.data.source.consent !== null) {
+                                    if (response.data.source.consent === true && !isConsentGiven) {
+                                        if (typeof config.listeners.onConsentRequired !== "undefined") {
+                                            const onConsentRequired = config.listeners.onConsentRequired
 
-                                                if (typeof onConsentRequired !== "function") {
-                                                    throw new TypeError("onConsentRequired must be a function.");
-                                                }
-
-                                                onConsentRequired({
-                                                    context: response.data,
-                                                    tracker: window.tracardi.default,
-                                                });
-
+                                            if (typeof onConsentRequired !== "function") {
+                                                throw new TypeError("onConsentRequired must be a function.");
                                             }
+
+                                            onConsentRequired({
+                                                context: response.data,
+                                                tracker: window.tracardi.default,
+                                            });
+
                                         }
                                     }
                                 }
+
                             });
                         }
                     }

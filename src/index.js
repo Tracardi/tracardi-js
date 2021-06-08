@@ -2,7 +2,7 @@ import Analytics from 'analytics'
 import tracardiPlugin from './tracardi'
 
 const analytics = Analytics({
-    app: 'app-name',
+    app: 'tracardi',
     debug: true,
     plugins: [
         tracardiPlugin(options)

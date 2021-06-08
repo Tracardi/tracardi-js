@@ -1,6 +1,6 @@
 export default function Event() {
     return {
-        build: ({type, source, metadata, session, profile, context, properties, user}) => {
+        build: ({type, source, metadata, session, profile, context, properties, user, options}) => {
             return {
                 type: type,
                 metadata: metadata,
@@ -9,7 +9,8 @@ export default function Event() {
                 context: context,
                 properties: properties,
                 user: user,
-                source: source
+                source: source,
+                options: options
             }
         },
         dynamic: (data) => {
@@ -25,7 +26,8 @@ export default function Event() {
                 source: payload.source,
                 context: payload.context,
                 profile: payload.profile,
-                session: payload.session
+                session: payload.session,
+                options: payload.options
             };
         }
     }

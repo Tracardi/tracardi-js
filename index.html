@@ -24,6 +24,7 @@
                     })
                 },
                 onConsentRequired: () => {
+                    alert("consent")
                     const consentBox = document.getElementById('consentBox');
                     if (consentBox) {
                         consentBox.style.display = "block";
@@ -48,10 +49,10 @@
 
     </script>
     <script>
-        window.tracker.track("xxx1", {"a": 222, "aaa2":3})
+        window.tracker.track("xxx1", {"a": 222, "aaa2":3}, {fire: true})
         window.tracker.track("xxx2", {"a": 2})
         window.tracker.track("xxx3", {"a": 3})
-        console.log(window)
+
     </script>
     <style>
         .consent {
