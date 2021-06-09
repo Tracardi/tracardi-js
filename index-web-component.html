@@ -56,6 +56,24 @@
         window.tracker.track("xxx2", {"a": 2}, {"save":false})
         window.tracker.track("xxx3", {"a": 3});
     </script>
+    <script type="module">
+        import { html, define } from 'https://unpkg.com/hybrids@^5';
+
+        function increaseCount(host) {
+            host.count += 1;
+        }
+
+        const SimpleCounter = {
+            count: 0,
+            render: ({ count }) => html`
+              <div onclick="${increaseCount}">
+                Count: ${count}
+              </div>
+            `,
+        };
+
+        define('simple-counter', SimpleCounter);
+    </script>
     <style>
         .consent {
             display: none; /* Hidden by default */
@@ -86,5 +104,8 @@ Test
     </div>
 </div>
 
+
+
+<simple-counter count="10"></simple-counter>
 </body>
 </html>
