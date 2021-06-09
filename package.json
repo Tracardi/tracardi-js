@@ -22,7 +22,7 @@
     "yarn": "^1.22.4"
   },
   "scripts": {
-    "build": "yarn tracker:browserify && yarn loader:browserify",
+    "build": "yarn tracker:browserify && yarn tracker:minify && yarn loader:browserify && yarn loader:minify ",
 
     "tracker:browserify": "browserify -t [ babelify --presets [ es2015 ] ] src/index.js -s tracardi -o dist/tracker.js",
     "tracker:minify": "cd dist && uglifyjs -c -m -o tracker.min.js --source-map url=loader.min.js.map -- tracker.js",

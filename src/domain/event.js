@@ -17,7 +17,8 @@ export default function Event() {
             return {
                 properties: data.properties,
                 type: data.type,
-                user: data.user
+                user: data.user,
+                options: data.options
             }
         },
         static: (payload) => {
@@ -27,7 +28,6 @@ export default function Event() {
                 context: payload.context,
                 profile: payload.profile,
                 session: payload.session,
-                options: payload.options
             };
         }
     }

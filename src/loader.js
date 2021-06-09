@@ -78,6 +78,8 @@
 })("documentReady", window);
 
 window.tracker || (window.tracker = {});
+window.response || (window.response = {context: {}});
+
 (function () {
 
     const trackerQueue = [];

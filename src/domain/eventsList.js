@@ -1,8 +1,8 @@
 import Event from './event';
 
-export default function EventsList(container) {
+export default function EventsList(container, profile) {
 
-    let store = null
+    // let store = null
     const eventObject = Event();
     if(container !== null) {
         container.events || (container.events = null);
@@ -12,29 +12,28 @@ export default function EventsList(container) {
 
         add: (payload) => {
             if(container !== null) {
+                // Multiple
                 if(container.events === null) {
                     container = eventObject.static(payload);
+                    container.options = profile.context
                     container.events = []
                 }
                 container.events.push(eventObject.dynamic(payload));
             } else {
-                store = eventObject.static(payload);
-                store.events = [eventObject.dynamic(payload)];
+            //     // Single
+            //     store = eventObject.static(payload);
+            //     store.options = profile.context
+            //     store.events = [eventObject.dynamic(payload)];
+                console.error("[Trackardi] Missing container in EventsList.")
             }
 
         },
         get: () => {
-            return (container !== null)
-                ? container
-                : store;
+            return container;
         },
 
         reset: () => {
-            if(container !== null) {
-                container = {events: null};
-            } else {
-                store = null;
-            }
+            container = {events: null};
         }
     }
 }
