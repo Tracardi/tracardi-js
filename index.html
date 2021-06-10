@@ -3,30 +3,56 @@
     <title>My title222</title>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
     <meta content="utf-8" http-equiv="encoding">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
     <script>
+
+
         const options = {
             listeners: {
-                onContextReady: ({helpers}) => {
+                onContextReady: ({helpers, context}) => {
                     console.log(helpers)
-                    document.getElementById('change-me').innerText = "Loaded";
-                    const btn1 = document.querySelector('#my-button')
+                    const btn1 = document.querySelector('#custom-click-event')
                     helpers.onClick(btn1, ()=> {
-                        helpers.track("test", {"test":1});
-                        document.getElementById('change-me').innerText = "Changed";
-                    })
+                        const c = helpers.track("custom-click-event");
+                        const responseToCustomEvent = document.getElementById('response-to-custom-event');
+                        responseToCustomEvent.innerText = JSON.stringify(c, null, " ");
+                        responseToCustomEvent.style.display = "block"
+                    });
+
+                    document.getElementById('response').innerText = JSON.stringify(context, null, " ");
 
                     const btn2 = document.querySelector('#consent-all')
                     helpers.onClick(btn2, ()=> {
-                        helpers.track("consent", {
+                        helpers.track("cookie-consent", {
                             "id":"consent-type",
                             "granted": true,
                             'revoke': null
                         });
-                        helpers.consentSubmitted()
+                        helpers.consentSubmitted();
+                        const consentBox = document.getElementById('consentBox');
+                        if (consentBox) {
+                            consentBox.style.display = "none";
+                        }
                     })
+
+                    const btn3 = document.querySelector('#block-all')
+                    helpers.onClick(btn3, ()=> {
+                        helpers.track("cookie-consent", {
+                            "id":"consent-type",
+                            "granted": false,
+                            'revoke': null
+                        });
+                        helpers.consentSubmitted();
+                        const consentBox = document.getElementById('consentBox');
+                        if (consentBox) {
+                            consentBox.style.display = "none";
+                        }
+                    })
+
                 },
                 onConsentRequired: () => {
-                    alert("consent")
                     const consentBox = document.getElementById('consentBox');
                     if (consentBox) {
                         consentBox.style.display = "block";
@@ -52,39 +78,100 @@
     </script>
     <script>
         window.response.context.profile = false;
-        window.tracker.track("xxx1", {"a": 222, "aaa2":3}, {fire: true})
-        window.tracker.track("xxx2", {"a": 2}, {"save":false})
-        window.tracker.track("xxx3", {"a": 3});
+        window.tracker.track("purchase-order", {"product": "Sun glasses - Badoo", "price": 13.45})
+        window.tracker.track("interest", {"Vacation": 1})
+        window.tracker.track("page-view", {"basket": 1});
     </script>
     <style>
-        .consent {
-            display: none; /* Hidden by default */
-        }
 
-        /* Modal Content/Box */
-        .consent-content {
-            box-sizing: border-box;
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            background-color: #ccc;
-            padding: 5px;
-            width: 100%;
-        }
     </style>
 
 </head>
 <body>
-Test
-<a href="page.html?referrer=aaa"><span id="change-me">Page</span></a>
+<h1><BOLD>TRACARDI</BOLD> <THIN>Test Page</THIN></h1>
+<section>
+<p>This page load TRACARDI Javascript to show case how it can be utilized to collect user data.</p>
+</section>
+<pre style="display: none">
+const options = {
+      tracker: {
+        url: {
+            script: 'dist/tracker.min.js',
+            api: 'http://localhost:8001'
+        },
+        source: {
+            id: "8538394b-92da-4c82-99f8-9169ca7350a8"
+         },
+         init: {
+            mydata: "ddd"
+        }
+    }
+}
+</pre>
 
-<div id="consentBox" class="consent">
-    <div class="consent-content">
-        <p>Some text in the Modal..</p>
-        <button id="consent-all">Allow all</button>
-        <button id="my-button">bind</button>
+
+<h2>Events</h2>
+<section>
+    <p>This is the example code that sends events to TRACARDI. Events pinpoint what happened on your web-site</p>
+    <pre>
+    window.response.context.profile = true;
+    window.tracker.track("purchase-order", {"product": "Sun glasses - Badoo", "price": 13.45})
+    window.tracker.track("interest", {"Vacation": 1})
+    window.tracker.track("page-view", {"basket": 1});
+    </pre>
+</section>
+<h2>TRACARDI response</h2>
+<section>
+    <p>TRACARDI will respond with information on user profile, session, and information on what was saved in the system.</p>
+    <p>This information can be used to change your page on the fly with javascript.</p>
+    <pre id="response"></pre>
+</section>
+
+
+<h2>TRACARDI listeners</h2>
+<h3>onConsentRequired</h3>
+<section>
+    <p>TRACARDI can listen to the data that comes from the system and can react to it. For example if you did not consent to data processing it can popup a message and ask for consent.</p>
+    <p>This is an example of code that shows white box below if consent is required.</p>
+<pre>
+const options = {
+    listeners: {
+        onConsentRequired: () => {
+            const consentBox = document.getElementById('consentBox');
+            if (consentBox) {
+                consentBox.style.display = "block";
+            }
+        }
+    }
+}
+</pre>
+    <p>It is shown because TRACARDI returned that this information source requires user consent. See response from TRACARDI above.</p>
+    <p>Once you click one of the buttons it will never appear again. </p>
+
+    <div id="consentBox" class="consent">
+        <div class="consent-content">
+            We are using cookies to collect anonymous data.
+            <button id="consent-all">Allow all</button>
+            <button id="block-all">Black all</button>
+        </div>
     </div>
-</div>
+</section>
+<h3>onContextReady</h3>
+<section>
+    <p>You can listen and react when the page is rady and TRACARDI returns user context information.
+        Than you can bind new tracking to any given element on page or change the page depending on the data tracardi returned.
+    </p>
+
+    <p>Click on button below to sent new event to TRACARDI. </p>
+
+    <div>
+        <BUTTON id="custom-click-event">NEW EVENT</BUTTON>
+    </div>
+
+    <pre id="response-to-custom-event" style="display: none"></pre>
+</section>
+
+
 
 </body>
 </html>
