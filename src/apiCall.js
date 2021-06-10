@@ -1,38 +1,21 @@
 import axios from "axios";
 
-export const request = ({url, header, method, data, onSuccess}) => {
+export async function request({url, header, method, data}) {
 
-    if(typeof header == "undefined") {
-        header = {"Content-Type":'application/json'};
+    if (typeof header == "undefined") {
+        header = {"Content-Type": 'application/json'};
     }
 
-    if(typeof method == "undefined") {
+    if (typeof method == "undefined") {
         method = "get";
     }
 
-    try {
+    const response =  await axios({
+        url,
+        method,
+        header,
+        data
+    });
 
-        axios({
-            url,
-            method,
-            header,
-            data
-        }).then(response => {
-            if(typeof onSuccess !== "undefined") {
-                onSuccess(response);
-            }
-        }).catch((e) => {
-            if (e.response) {
-                if( typeof e.response.data === 'object') {
-                    console.error("[Tracker] " + e.response.data.detail);
-                } else {
-                    console.error("[Tracker] " + e.message);
-                }
-            } else {
-                console.error("[Tracker] " + e.message);
-            }
-        });
-    } catch (e) {
-        console.error("[Tracker] " + e.message);
-    }
+    return response
 };

@@ -29,84 +29,127 @@ export default function tracardiPlugin(options) {
     }
     let singleApiCall = {}
 
-    const push = (config) => {
-        console.debug(trackEventList.get());
+    const getEventPayload = (payload) => {
+        let eventPayload = {
+            type: payload.event,
+            source: config.tracker.source,
+            session: {id: sessionId},
+            profile: (profileId != null)
+                ? {id: profileId}
+                : null,
+            context: {
+                page: clientInfo.page(),
+                browser: clientInfo.browser(),
+                storage: clientInfo.storage(),
+                screen: clientInfo.screen(),
+            },
+            properties: payload.properties,
+        }
 
-        request(
-            {
-                method: "POST",
-                url: config.tracker.url.api + '/track',
-                data: trackEventList.get(),
-                onSuccess: (response) => {
+        if(payload.userId) {
+            eventPayload['user'] = {id: payload.userId}
+        }
 
-                    // If browser profile is the same as context profile then consent displayed
-                    // Consent is displayed when there is new profile created.
+        if(payload.options) {
+            eventPayload['options'] = payload.options
+        }
 
-                    if(typeof response.data.context.profile.id === "undefined") {
-                        console.error("[Tracardi] /track must return profile id. No profile id returned.")
+        return eventPayload;
+    }
+
+    const handleError = (e) => {
+        if (e.response) {
+            if (typeof e.response.data === 'object') {
+                console.error("[Tracker] " + e.response.data.detail);
+            } else {
+                console.error("[Tracker] " + e.message);
+            }
+        } else {
+            console.error("[Tracker] " + e.message);
+        }
+    }
+
+    const push = async (config) => {
+
+        try {
+
+            const response = await request(
+                {
+                    method: "POST",
+                    url: config.tracker.url.api + '/track',
+                    data: trackEventList.get()
+                }
+            );
+
+            // If browser profile is the same as context profile then consent displayed
+            // Consent is displayed when there is new profile created.
+
+            if(typeof response.data.context.profile.id === "undefined") {
+                console.error("[Tracardi] /track must return profile id. No profile id returned.")
+            }
+
+            const isConsentGiven = getItem(consentKey) === response.data.context.profile.id;
+
+            // Set profile id
+            profileId = response.data.context.profile.id
+            setItem(profileName, profileId);
+
+            documentReady(() => {
+
+                if (typeof config.listeners === "undefined") {
+                    return
+                }
+
+                // onContextReady event
+                if (typeof config.listeners.onContextReady !== "undefined") {
+                    const onContextReady = config.listeners.onContextReady
+
+                    if (typeof onContextReady !== "function") {
+                        throw new TypeError("onContextReady must be a function.");
                     }
 
-                    const isConsentGiven = getItem(consentKey) === response.data.context.profile.id;
+                    // loadJS(
+                    //     "src/test.js",
+                    //     ()=>{typeof main === "function" && main(response.data)},
+                    //     document.body,
+                    //     'script'
+                    // )
 
-                    // Set profile id
-                    profileId = response.data.context.profile.id
-                    setItem(profileName, profileId);
-
-                    documentReady(() => {
-
-                        if (typeof config.listeners === "undefined") {
-                            return
+                    onContextReady({
+                            context: response.data,
+                            tracker: window.tracardi.default,
+                            helpers: window.tracardi.default.plugins.tracardi
                         }
+                    );
 
-                        // onContextReady event
-                        if (typeof config.listeners.onContextReady !== "undefined") {
-                            const onContextReady = config.listeners.onContextReady
-
-                            if (typeof onContextReady !== "function") {
-                                throw new TypeError("onContextReady must be a function.");
-                            }
-
-                            // loadJS(
-                            //     "src/test.js",
-                            //     ()=>{typeof main === "function" && main(response.data)},
-                            //     document.body,
-                            //     'script'
-                            // )
-
-                            onContextReady({
-                                    context: response.data,
-                                    tracker: window.tracardi.default,
-                                    helpers: window.tracardi.default.plugins.tracardi
-                                }
-                            );
-
-                        }
-
-                        // onConsentRequired
-                        if (typeof response.data.source.consent !== "undefined" && response.data.source.consent !== null) {
-                            if (response.data.source.consent === true && !isConsentGiven) {
-                                if (typeof config.listeners.onConsentRequired !== "undefined") {
-                                    const onConsentRequired = config.listeners.onConsentRequired
-
-                                    if (typeof onConsentRequired !== "function") {
-                                        throw new TypeError("onConsentRequired must be a function.");
-                                    }
-
-                                    onConsentRequired({
-                                        context: response.data,
-                                        tracker: window.tracardi.default,
-                                    });
-
-                                }
-                            }
-                        }
-
-                    });
                 }
-            }
-        );
 
-        trackEventList.reset();
+                // onConsentRequired
+                if (typeof response.data.source.consent !== "undefined" && response.data.source.consent !== null) {
+                    if (response.data.source.consent === true && !isConsentGiven) {
+                        if (typeof config.listeners.onConsentRequired !== "undefined") {
+                            const onConsentRequired = config.listeners.onConsentRequired
+
+                            if (typeof onConsentRequired !== "function") {
+                                throw new TypeError("onConsentRequired must be a function.");
+                            }
+
+                            onConsentRequired({
+                                context: response.data,
+                                tracker: window.tracardi.default,
+                            });
+
+                        }
+                    }
+                }
+
+            });
+
+            trackEventList.reset();
+
+        } catch(e) {
+            handleError(e);
+        }
     }
 
     return {
@@ -117,9 +160,34 @@ export default function tracardiPlugin(options) {
             listeners: options.listeners
         },
         methods: {
-            track: (event, payload) => {
-                const {track} = window.tracardi.default
-                track(event, payload, {fire: true})
+            track: async (eventType, payload) => {
+
+                try {
+
+                    payload = {
+                        event: eventType,
+                        properties: (payload) ? payload : {}
+                    }
+
+                    const eventPayload = getEventPayload(payload);
+
+                    let trackerPayload = event.static(eventPayload);
+                    trackerPayload.options = window.response.context;
+                    trackerPayload.events = [event.dynamic(eventPayload)];
+
+                    const response = await request(
+                        {
+                            method: "POST",
+                            url: config.tracker.url.api + '/track',
+                            data: trackerPayload
+                        }
+                    );
+
+                    return response
+
+                } catch (e) {
+                    return null
+                }
             },
 
             onClick: (object, func) => {
@@ -218,43 +286,25 @@ export default function tracardiPlugin(options) {
 
             console.debug("[Tracker] Event track", payload);
 
-            let eventPayload = {
-                type: payload.event,
-                source: config.tracker.source,
-                session: {id: sessionId},
-                profile: (profileId != null)
-                    ? {id: profileId}
-                    : null,
-                context: {
-                    page: clientInfo.page(),
-                    browser: clientInfo.browser(),
-                    storage: clientInfo.storage(),
-                    screen: clientInfo.screen(),
-                },
-                properties: payload.properties,
-            }
-
-            if(payload.userId) {
-                eventPayload['user'] = {id: payload.userId}
-            }
-
-            if(payload.options) {
-                eventPayload['options'] = payload.options
-            }
+            const eventPayload = getEventPayload(payload)
 
             if (typeof payload.options.fire !== "undefined" && payload.options.fire) {
-                immediateTrackEventList.add(event.build(eventPayload))
-                request(
-                    {
-                        method: "POST",
-                        url: config.tracker.url.api + '/track',
-                        data: immediateTrackEventList.get(),
-                        onSuccess: (response) => {
-                            console.warn("[Tracardi] Tracking with option `fire: true` will not trigger listeners such as onContextReady, onConsentRequired, etc.")
+                try {
+                    immediateTrackEventList.add(event.build(eventPayload))
+                    const response = request(
+                        {
+                            method: "POST",
+                            url: config.tracker.url.api + '/track',
+                            data: immediateTrackEventList.get()
                         }
-                    }
-                );
-                immediateTrackEventList.reset()
+                    );
+                    console.warn("[Tracardi] Tracking with option `fire: true` will not trigger listeners such as onContextReady, onConsentRequired, etc.")
+
+                    immediateTrackEventList.reset();
+                    return response
+                } catch(e) {
+                    handleError(e);
+                }
             } else {
                 trackEventList.add(event.build(eventPayload));
             }

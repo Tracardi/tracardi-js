@@ -14,40 +14,54 @@
                 onContextReady: ({helpers, context}) => {
                     console.log(helpers)
                     const btn1 = document.querySelector('#custom-click-event')
-                    helpers.onClick(btn1, ()=> {
-                        const c = helpers.track("custom-click-event");
-                        const responseToCustomEvent = document.getElementById('response-to-custom-event');
-                        responseToCustomEvent.innerText = JSON.stringify(c, null, " ");
-                        responseToCustomEvent.style.display = "block"
+                    helpers.onClick(btn1, async ()=> {
+                        const response = await helpers.track("custom-click-event", {"new-property": "hello"});
+
+                        if(response) {
+                            const responseToCustomEvent = document.getElementById('response-to-custom-event');
+                            responseToCustomEvent.innerText = JSON.stringify(response.data, null, " ");
+                            responseToCustomEvent.style.display = "block"
+                        }
                     });
 
                     document.getElementById('response').innerText = JSON.stringify(context, null, " ");
 
                     const btn2 = document.querySelector('#consent-all')
-                    helpers.onClick(btn2, ()=> {
-                        helpers.track("cookie-consent", {
+                    helpers.onClick(btn2, async ()=> {
+                        const response = await helpers.track("cookie-consent", {
                             "id":"consent-type",
                             "granted": true,
                             'revoke': null
                         });
-                        helpers.consentSubmitted();
-                        const consentBox = document.getElementById('consentBox');
-                        if (consentBox) {
-                            consentBox.style.display = "none";
+
+                        if(response) {
+
+                            helpers.consentSubmitted();
+                            const consentBox = document.getElementById('consentBox');
+                            if (consentBox) {
+                                consentBox.style.display = "none";
+                            }
+
+                        } else {
+                            alert("Network error")
                         }
+
+
                     })
 
                     const btn3 = document.querySelector('#block-all')
-                    helpers.onClick(btn3, ()=> {
-                        helpers.track("cookie-consent", {
+                    helpers.onClick(btn3, async ()=> {
+                        const response = await helpers.track("cookie-consent", {
                             "id":"consent-type",
                             "granted": false,
                             'revoke': null
                         });
-                        helpers.consentSubmitted();
-                        const consentBox = document.getElementById('consentBox');
-                        if (consentBox) {
-                            consentBox.style.display = "none";
+                        if(response) {
+                            helpers.consentSubmitted();
+                            const consentBox = document.getElementById('consentBox');
+                            if (consentBox) {
+                                consentBox.style.display = "none";
+                            }
                         }
                     })
 
@@ -77,7 +91,7 @@
 
     </script>
     <script>
-        window.response.context.profile = false;
+        window.response.context.profile = true;
         window.tracker.track("purchase-order", {"product": "Sun glasses - Badoo", "price": 13.45})
         window.tracker.track("interest", {"Vacation": 1})
         window.tracker.track("page-view", {"basket": 1});
