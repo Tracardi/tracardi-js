@@ -3,7 +3,7 @@ export default function Event() {
         build: ({type, source, metadata, session, profile, context, properties, user, options}) => {
             return {
                 type: type,
-                metadata: metadata,
+                // metadata: metadata,
                 session: session,
                 profile: profile,
                 context: context,
