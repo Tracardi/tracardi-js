@@ -13,6 +13,18 @@
             listeners: {
                 onContextReady: ({helpers, context}) => {
                     console.log(helpers)
+
+                    const btn0 = document.querySelector('#page-view-event')
+                    helpers.onClick(btn0, async ()=> {
+                        const response = await helpers.track("page-view", {"page": "hello"});
+
+                        if(response) {
+                            const responseToCustomEvent = document.getElementById('response-to-custom-event');
+                            responseToCustomEvent.innerText = JSON.stringify(response.data, null, " ");
+                            responseToCustomEvent.style.display = "block"
+                        }
+                    });
+
                     const btn1 = document.querySelector('#custom-click-event')
                     helpers.onClick(btn1, async ()=> {
                         const response = await helpers.track("custom-click-event", {"new-property": "hello"});
@@ -180,6 +192,7 @@ const options = {
 
     <div>
         <BUTTON id="custom-click-event">NEW EVENT</BUTTON>
+        <BUTTON id="page-view-event">PAGE-VIEW EVENT</BUTTON>
     </div>
 
     <pre id="response-to-custom-event" style="display: none"></pre>
