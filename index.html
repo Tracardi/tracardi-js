@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="index.css">
     <script>
 
-
         const options = {
             listeners: {
                 onContextReady: ({helpers, context}) => {
@@ -91,10 +90,7 @@
                     api: 'http://localhost:8001'
                 },
                 source: {
-                    id: "8538394b-92da-4c82-99f8-9169ca7350a8"
-                },
-                init: {
-                    mydata: "ddd"
+                    id: "55b2fac6-acb0-4855-b2ed-28dad461131a"
                 }
             }
         }
@@ -105,7 +101,7 @@
     <script>
         window.response.context.profile = true;
         window.tracker.track("purchase-order", {"product": "Sun glasses - Badoo", "price": 13.45})
-        window.tracker.track("interest", {"Vacation": 1})
+        window.tracker.track("profile-interest", {"Vacation": 1})
         window.tracker.track("page-view", {"basket": 1});
     </script>
     <style>
@@ -114,7 +110,7 @@
 
 </head>
 <body>
-<h1><BOLD>TRACARDI</BOLD> <THIN>Test Page</THIN></h1>
+<h1><BOLD>TRACARDI</BOLD> <THIN>JavaScript Integration Test Page</THIN></h1>
 <section>
 <p>This page load TRACARDI Javascript to show case how it can be utilized to collect user data.</p>
 </section>
@@ -127,10 +123,7 @@ const options = {
         },
         source: {
             id: "8538394b-92da-4c82-99f8-9169ca7350a8"
-         },
-         init: {
-            mydata: "ddd"
-        }
+         }
     }
 }
 </pre>
