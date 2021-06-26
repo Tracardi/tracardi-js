@@ -1,6 +1,3 @@
-// import {addListener} from "@analytics/listener-utils";
-// import {request} from "./api_call";
-
 (function(funcName, baseObj) {
     "use strict";
     // The public function name defaults to window.docReady
@@ -104,6 +101,10 @@ window.response || (window.response = {context: {}});
     function callback(e) {
         console.debug("[Tracker] Rerun callbacks.")
         // Now window.tracardi.default is present
+        if(typeof window.tracardi.default === 'undefined') {
+            console.error("[Tracardi] Callbacks stopped. Tracker not initialized. Is script url correct?");
+            return;
+        }
         if(!window.tracardi.default.getState().plugins['tracardi'].initialized) {
             console.error("[Tracardi] Callbacks stopped. Tracker not initialized.");
             return;
@@ -132,7 +133,7 @@ window.response || (window.response = {context: {}});
         }
 
         if (options.tracker.url.script !== null) {
-            if (options.tracker.url.script.startsWith("http")) {
+            if (options.tracker.url.script.startsWith("http") || options.tracker.url.script.startsWith("//")) {
                 script.src = options.tracker.url.script + '/' + tracker_path;
             } else {
                 script.src = options.tracker.url.script
