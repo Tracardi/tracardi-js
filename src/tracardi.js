@@ -84,14 +84,14 @@ export default function tracardiPlugin(options) {
             // If browser profile is the same as context profile then consent displayed
             // Consent is displayed when there is new profile created.
 
-            if(typeof response.data.context.profile.id === "undefined") {
+            if(typeof response.data.profile.id === "undefined") {
                 console.error("[Tracardi] /track must return profile id. No profile id returned.")
             }
 
-            const isConsentGiven = getItem(consentKey) === response.data.context.profile.id;
+            const isConsentGiven = getItem(consentKey) === response.data.profile.id;
 
             // Set profile id
-            profileId = response.data.context.profile.id
+            profileId = response.data.profile.id
             setItem(profileName, profileId);
 
             documentReady(() => {
