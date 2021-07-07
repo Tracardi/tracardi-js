@@ -23,7 +23,7 @@ export default function tracardiPlugin(options) {
     let sessionId = getCookie(cookieName);
     if (!sessionId) {
         sessionId = uuid4();
-        const expires = 60 * 60 * 31 * 30;
+        const expires = 0;
         setCookie(cookieName, sessionId, expires);
         isCookieSet = false
     }
