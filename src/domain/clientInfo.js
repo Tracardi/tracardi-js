@@ -47,6 +47,7 @@ export default function ClientInfo() {
 
         time: () => {
             return {
+                local: new Date().toLocaleString(),
                 tz: Intl.DateTimeFormat().resolvedOptions().timeZone
             }
         },
