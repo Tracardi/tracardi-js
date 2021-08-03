@@ -38,6 +38,7 @@ export default function tracardiPlugin(options) {
                 ? {id: profileId}
                 : null,
             context: {
+                time: clientInfo.time(),
                 page: clientInfo.page(),
                 browser: clientInfo.browser(),
                 storage: clientInfo.storage(),

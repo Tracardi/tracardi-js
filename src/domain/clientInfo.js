@@ -45,6 +45,12 @@ export default function ClientInfo() {
 
     return {
 
+        time: () => {
+            return {
+                tz: Intl.DateTimeFormat().resolvedOptions().timeZone
+            }
+        },
+
         page: () => {
             return {
                 url: location.href,

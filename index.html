@@ -11,8 +11,6 @@
         const options = {
             listeners: {
                 onContextReady: ({helpers, context}) => {
-                    console.log(helpers)
-
                     const btn0 = document.querySelector('#page-view-event')
                     helpers.onClick(btn0, async ()=> {
                         const response = await helpers.track("page-view", {"page": "hello"});
@@ -86,11 +84,11 @@
             },
             tracker: {
                 url: {
-                    script: 'dist/tracker.js',
-                    api: 'http://localhost:8001'
+                    script: 'http://localhost:8686/tracker',
+                    api: 'http://localhost:8686'
                 },
                 source: {
-                    id: "b44f7173-fef9-4b85-9bfe-0704ef1cd182"
+                    id: "3ee63fc6-490a-4fd8-bfb3-bf0c8c8d3387"
                 }
             }
         }
@@ -104,7 +102,7 @@
         window.tracker.track("profile-interest", {"Vacation": 1})
         window.tracker.track("page-view", {"basket": 1});
         window.tracker.track("personal-data", {
-            "name": "Jan",
+            "name": Math.random(),
             "surname": "Doe",
             "email": "john.doe@gmail.com",
             "location": "Berlin/Germany"
@@ -124,11 +122,11 @@
 const options = {
       tracker: {
         url: {
-            script: 'dist/tracker.min.js',
-            api: 'http://localhost:8001'
+            script: 'http://localhost:8686/tracker',
+            api: 'http://localhost:8686'
         },
         source: {
-            id: "b44f7173-fef9-4b85-9bfe-0704ef1cd182"
+            id: "7303142e-c0e1-45a4-8b1b-6e2f0381b141"
          }
     }
 }
