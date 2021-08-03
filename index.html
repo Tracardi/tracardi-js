@@ -10,7 +10,24 @@
 
         const options = {
             listeners: {
+                onInit: ({helpers, context}) => {
+                    console.log("xxx")
+                    const btn0 = document.querySelector('#page-view-event')
+                    btn0.style.backgroundColor = "red";
+                    btn0.style.color="white";
+                    helpers.onClick(btn0, async ()=> {
+                        const response = await helpers.track("page-view", {"page": "hello"});
+
+                        if(response) {
+                            const responseToCustomEvent = document.getElementById('response-to-custom-event');
+                            responseToCustomEvent.innerText = JSON.stringify(response.data, null, " ");
+                            responseToCustomEvent.style.display = "block"
+                        }
+                    });
+                },
+                onSessionSet: () => {},
                 onContextReady: ({helpers, context}) => {
+                    console.log("xxx")
                     const btn0 = document.querySelector('#page-view-event')
                     helpers.onClick(btn0, async ()=> {
                         const response = await helpers.track("page-view", {"page": "hello"});
@@ -97,16 +114,16 @@
 
     </script>
     <script>
-        window.response.context.profile = true;
-        window.tracker.track("purchase-order", {"product": "Sun glasses - Badoo", "price": 13.45})
-        window.tracker.track("profile-interest", {"Vacation": 1})
-        window.tracker.track("page-view", {"basket": 1});
-        window.tracker.track("personal-data", {
-            "name": Math.random(),
-            "surname": "Doe",
-            "email": "john.doe@gmail.com",
-            "location": "Berlin/Germany"
-        });
+        // window.response.context.profile = true;
+        // window.tracker.track("purchase-order", {"product": "Sun glasses - Badoo", "price": 13.45})
+        // window.tracker.track("profile-interest", {"Vacation": 1})
+        // window.tracker.track("page-view", {"basket": 1});
+        // window.tracker.track("personal-data", {
+        //     "name": Math.random(),
+        //     "surname": "Doe",
+        //     "email": "john.doe@gmail.com",
+        //     "location": "Berlin/Germany"
+        // });
     </script>
     <style>
 

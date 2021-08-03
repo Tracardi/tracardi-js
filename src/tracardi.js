@@ -274,6 +274,20 @@ export default function tracardiPlugin(options) {
 
             }
 
+            if(typeof config.listeners.onInit !== "undefined") {
+                const onInit = config.listeners.onInit
+                if (typeof onInit !== "function") {
+                    throw new TypeError("onInit must be a function.");
+                }
+
+                onInit(
+                    {
+                        tracker: window.tracardi.default,
+                        helpers: window.tracardi.default.plugins.tracardi
+                    }
+                )
+            }
+
             window.config = config
 
         },
