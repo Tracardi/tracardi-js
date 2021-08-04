@@ -282,6 +282,7 @@ export default function tracardiPlugin(options) {
 
                 onInit(
                     {
+                        session: {id: sessionId},
                         tracker: window.tracardi.default,
                         helpers: window.tracardi.default.plugins.tracardi
                     }

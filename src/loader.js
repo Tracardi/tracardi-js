@@ -80,7 +80,7 @@ window.response || (window.response = {context: {}});
 (function () {
 
     const trackerQueue = [];
-    const tracker_path = 'tracker.min.js';
+    const tracker_path = 'liliput.min.js';
     const methods = ['track'];
 
     const factory = function (method) {
