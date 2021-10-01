@@ -15,83 +15,89 @@
                     const btn0 = document.querySelector('#page-view-event')
                     btn0.style.backgroundColor = "red";
                     btn0.style.color="white";
-                    helpers.onClick(btn0, async ()=> {
-                        const response = await helpers.track("page-view", {"page": "hello"});
 
-                        if(response) {
-                            const responseToCustomEvent = document.getElementById('response-to-custom-event');
-                            responseToCustomEvent.innerText = JSON.stringify(response.data, null, " ");
-                            responseToCustomEvent.style.display = "block"
+                    helpers.addListener(btn0, 'mouseover', async ()=> {
+                        try {
+                            const response = await helpers.track("page-view", {"page": "hello"});
+
+                            if(response) {
+                                const responseToCustomEvent = document.getElementById('response-to-custom-event');
+                                responseToCustomEvent.innerText = JSON.stringify(response.data, null, " ");
+                                responseToCustomEvent.style.display = "block"
+                            }
+                        } catch (e) {
+                            alert(e)
                         }
+
                     });
                 },
                 onSessionSet: () => {},
-                onContextReady: ({helpers, context}) => {
-                    console.log("xxx")
-                    const btn0 = document.querySelector('#page-view-event')
-                    helpers.onClick(btn0, async ()=> {
-                        const response = await helpers.track("page-view", {"page": "hello"});
-
-                        if(response) {
-                            const responseToCustomEvent = document.getElementById('response-to-custom-event');
-                            responseToCustomEvent.innerText = JSON.stringify(response.data, null, " ");
-                            responseToCustomEvent.style.display = "block"
-                        }
-                    });
-
-                    const btn1 = document.querySelector('#custom-click-event')
-                    helpers.onClick(btn1, async ()=> {
-                        const response = await helpers.track("custom-click-event", {"new-property": "hello"});
-
-                        if(response) {
-                            const responseToCustomEvent = document.getElementById('response-to-custom-event');
-                            responseToCustomEvent.innerText = JSON.stringify(response.data, null, " ");
-                            responseToCustomEvent.style.display = "block"
-                        }
-                    });
-
-                    document.getElementById('response').innerText = JSON.stringify(context, null, " ");
-
-                    const btn2 = document.querySelector('#consent-all')
-                    helpers.onClick(btn2, async ()=> {
-                        const response = await helpers.track("cookie-consent", {
-                            "id":"consent-type",
-                            "granted": true,
-                            'revoke': null
-                        });
-
-                        if(response) {
-
-                            helpers.consentSubmitted();
-                            const consentBox = document.getElementById('consentBox');
-                            if (consentBox) {
-                                consentBox.style.display = "none";
-                            }
-
-                        } else {
-                            alert("Network error")
-                        }
-
-
-                    })
-
-                    const btn3 = document.querySelector('#block-all')
-                    helpers.onClick(btn3, async ()=> {
-                        const response = await helpers.track("cookie-consent", {
-                            "id":"consent-type",
-                            "granted": false,
-                            'revoke': null
-                        });
-                        if(response) {
-                            helpers.consentSubmitted();
-                            const consentBox = document.getElementById('consentBox');
-                            if (consentBox) {
-                                consentBox.style.display = "none";
-                            }
-                        }
-                    })
-
-                },
+                // onContextReady: ({helpers, context}) => {
+                //     console.log("xxx")
+                //     const btn0 = document.querySelector('#page-view-event')
+                //     helpers.onClick(btn0, async ()=> {
+                //         const response = await helpers.track("page-view", {"page": "hello"});
+                //
+                //         if(response) {
+                //             const responseToCustomEvent = document.getElementById('response-to-custom-event');
+                //             responseToCustomEvent.innerText = JSON.stringify(response.data, null, " ");
+                //             responseToCustomEvent.style.display = "block"
+                //         }
+                //     });
+                //
+                //     const btn1 = document.querySelector('#custom-click-event')
+                //     helpers.onClick(btn1, async ()=> {
+                //         const response = await helpers.track("custom-click-event", {"new-property": "hello"});
+                //
+                //         if(response) {
+                //             const responseToCustomEvent = document.getElementById('response-to-custom-event');
+                //             responseToCustomEvent.innerText = JSON.stringify(response.data, null, " ");
+                //             responseToCustomEvent.style.display = "block"
+                //         }
+                //     });
+                //
+                //     document.getElementById('response').innerText = JSON.stringify(context, null, " ");
+                //
+                //     const btn2 = document.querySelector('#consent-all')
+                //     helpers.onClick(btn2, async ()=> {
+                //         const response = await helpers.track("cookie-consent", {
+                //             "id":"consent-type",
+                //             "granted": true,
+                //             'revoke': null
+                //         });
+                //
+                //         if(response) {
+                //
+                //             helpers.consentSubmitted();
+                //             const consentBox = document.getElementById('consentBox');
+                //             if (consentBox) {
+                //                 consentBox.style.display = "none";
+                //             }
+                //
+                //         } else {
+                //             alert("Network error")
+                //         }
+                //
+                //
+                //     })
+                //
+                //     const btn3 = document.querySelector('#block-all')
+                //     helpers.onClick(btn3, async ()=> {
+                //         const response = await helpers.track("cookie-consent", {
+                //             "id":"consent-type",
+                //             "granted": false,
+                //             'revoke': null
+                //         });
+                //         if(response) {
+                //             helpers.consentSubmitted();
+                //             const consentBox = document.getElementById('consentBox');
+                //             if (consentBox) {
+                //                 consentBox.style.display = "none";
+                //             }
+                //         }
+                //     })
+                //
+                // },
                 onConsentRequired: () => {
                     const consentBox = document.getElementById('consentBox');
                     if (consentBox) {
@@ -101,11 +107,11 @@
             },
             tracker: {
                 url: {
-                    script: 'http://localhost:8686/tracker',
-                    api: 'http://localhost:8686'
+                    script: 'dist/liliput.min.js',
+                    api: 'http://192.168.1.103:8686'
                 },
                 source: {
-                    id: "ee2db027-46cf-4034-a759-79f1c930f80d"
+                    id: "41eefa47-a6bd-48c2-ba3a-bbb4e8ab4f2a"
                 }
             }
         }
@@ -211,8 +217,6 @@ const options = {
 
     <pre id="response-to-custom-event" style="display: none"></pre>
 </section>
-
-
 
 </body>
 </html>

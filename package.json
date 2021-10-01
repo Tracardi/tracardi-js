@@ -12,7 +12,8 @@
     "babel-core": "^6.26.3",
     "babel-preset-es2015": "^6.24.1",
     "babelify": "8",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "web-vitals": "^2.1.0"
   },
   "devDependencies": {
     "browserify": "^17.0.0",
@@ -23,7 +24,6 @@
   },
   "scripts": {
     "build": "yarn tracker:browserify && yarn loader:browserify && yarn loader:minify ",
-
     "tracker:browserify": "browserify -t [ babelify --presets [ es2015 ] ] src/index.js -s tracardi -o dist/liliput.js",
     "tracker:minify": "cd dist && uglifyjs -c -m -o liliput.min.js --source-map url=liliput.min.js.map -- liliput.js",
     "loader:browserify": "browserify -t [ babelify --presets [ es2015 ] ] src/loader.js -s tracardi -o dist/loader.js",

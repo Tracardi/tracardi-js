@@ -6,6 +6,7 @@ import EventsList from './domain/eventsList';
 import {getItem, setItem} from "@analytics/storage-utils";
 import {request} from "./apiCall";
 import {addListener} from "@analytics/listener-utils";
+import {getLCP, getFID, getCLS} from 'web-vitals';
 // import loadJS from "./utils/loadJs";
 
 export default function tracardiPlugin(options) {
