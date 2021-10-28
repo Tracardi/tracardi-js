@@ -10,12 +10,11 @@ export async function request({url, header, method, data}) {
         method = "get";
     }
 
-    const response =  await axios({
+    return  await axios({
         url,
         method,
         header,
         data
     });
 
-    return response
 };
