@@ -236,6 +236,10 @@ export default function tracardiPlugin(options) {
                 console.error("[Tracker] Tracker init stopped because config.tracker.url.api is undefined.");
                 return abort('Cancel the initialize call because of config.tracker.url.api s undefined.');
             }
+
+            if (typeof config.listeners === "undefined") {
+                config.listeners = {}
+            }
         },
 
         initialize: ({config}) => {
