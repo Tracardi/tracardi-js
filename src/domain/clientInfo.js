@@ -101,12 +101,13 @@ export default function ClientInfo() {
         },
 
         storage: () => {
+            return localStorage;
+        },
+
+        cookies: () => {
             return {
-                local: localStorage,
-                cookie: {
                     cookies1: document.cookie,
                     cookies2: decodeURIComponent(document.cookie.split(";")),
-                }
             }
         }
     }

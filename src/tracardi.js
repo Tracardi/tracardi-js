@@ -1,4 +1,4 @@
-import {getCookie, setCookie, hasCookieSupport} from '@analytics/cookie-utils';
+import {getCookie, setCookie, hasCookies} from '@analytics/cookie-utils';
 import {v4 as uuid4} from 'uuid';
 import Event from './domain/event';
 import ClientInfo from './domain/clientInfo';
@@ -30,7 +30,8 @@ export default function tracardiPlugin(options) {
     }
     let singleApiCall = {}
 
-    const getEventPayload = (payload) => {
+    const getEventPayload = (payload, context) => {
+
         let eventPayload = {
             type: payload.event,
             source: config.tracker.source,
@@ -40,12 +41,43 @@ export default function tracardiPlugin(options) {
                 : null,
             context: {
                 time: clientInfo.time(),
-                page: clientInfo.page(),
-                browser: clientInfo.browser(),
-                storage: clientInfo.storage(),
-                screen: clientInfo.screen(),
             },
             properties: payload.properties,
+        }
+
+        if (typeof context.browser === "undefined" || context.browser === true) {
+            eventPayload.context.browser = {
+                ...eventPayload.context.browser,
+                local: clientInfo.browser()
+            }
+        }
+
+        if (typeof context.page === "undefined" || context.page === true) {
+            eventPayload.context.page = {
+                ...eventPayload.context.page,
+                local: clientInfo.page()
+            }
+        }
+
+        if (typeof context.screen === "undefined" || context.screen === true) {
+            eventPayload.context.screen = {
+                ...eventPayload.context.screen,
+                local: clientInfo.screen()
+            }
+        }
+
+        if (context.storage === true) {
+            eventPayload.context.storage = {
+                ...eventPayload.context.storage,
+                local: clientInfo.storage()
+            }
+        }
+
+        if (context.cookies === true) {
+            eventPayload.context.storage = {
+                ...eventPayload.context.storage,
+                cookies: clientInfo.cookies()
+            }
         }
 
         if (payload.userId) {
@@ -173,7 +205,8 @@ export default function tracardiPlugin(options) {
 
         config: {
             tracker: options.tracker,
-            listeners: options.listeners
+            listeners: options.listeners,
+            context: options.context
         },
         methods: {
             track: async (eventType, payload) => {
@@ -182,7 +215,7 @@ export default function tracardiPlugin(options) {
                     properties: (payload) ? payload : {}
                 }
 
-                const eventPayload = getEventPayload(payload);
+                const eventPayload = getEventPayload(payload, config.tracker.context);
 
                 let trackerPayload = event.static(eventPayload);
                 trackerPayload.options = window.response.context;
@@ -240,6 +273,16 @@ export default function tracardiPlugin(options) {
             if (typeof config.listeners === "undefined") {
                 config.listeners = {}
             }
+
+            if (typeof config.tracker.context === "undefined") {
+                config.tracker.context = {
+                    cookies: false,
+                    storage: false,
+                    screen: true,
+                    page: true,
+                    browser: true
+                }
+            }
         },
 
         initialize: ({config}) => {
@@ -250,7 +293,7 @@ export default function tracardiPlugin(options) {
                 tracks: false
             }
 
-            if (!hasCookieSupport()) {
+            if (!hasCookies()) {
                 console.error("[Tracker] Cookies disabled.");
                 if (typeof config.listeners.onCookiesDisabled !== "undefined") {
                     const onCookiesDisabled = config.listeners.onCookiesDisabled
@@ -305,7 +348,7 @@ export default function tracardiPlugin(options) {
 
         },
 
-        track: ({payload}) => {
+        track: ({payload, config}) => {
 
             if (typeof config == 'undefined' || typeof config.tracker == 'undefined' || typeof config.tracker.source === 'undefined') {
                 console.error("[Tracker] config.tracker.source undefined.");
@@ -314,7 +357,7 @@ export default function tracardiPlugin(options) {
 
             console.debug("[Tracker] Event track", payload);
 
-            const eventPayload = getEventPayload(payload)
+            const eventPayload = getEventPayload(payload, config.tracker.context)
 
             if (typeof payload.options.fire !== "undefined" && payload.options.fire) {
                 try {

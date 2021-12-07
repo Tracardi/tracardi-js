@@ -229,12 +229,10 @@ Helpers also have track method that let you send custom event to Tracardi at any
 
 # Building Tracardi JS plugin
 
-```
-sudo npm install -g browserify
-yarn add babelify@8
-yarn add babel-core
-yarn add babel-preset-es2015
-yarn add @types/dlv@^1.0.0
 
+```
+npm install yarn
+yarn install
 yarn build
 ```
+

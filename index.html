@@ -43,10 +43,15 @@
             tracker: {
                 url: {
                     script: 'dist/liliput.min.js',
-                    api: 'http://192.168.1.103:8686'
+                    api: 'http://localhost:8686'
                 },
                 source: {
                     id: "@test-resource"
+                },
+                context: {
+                    page: false,
+                    browser: false,
+                    screen: false
                 }
             }
         }
