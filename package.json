@@ -9,7 +9,6 @@
     "@babel/core": "^7.0.0-0",
     "@types/dlv": "^1.0.0",
     "analytics": "^0.7.5",
-    "axios": "^0.21.2",
     "babelify": "10",
     "uuid": "^8.3.2",
     "web-vitals": "^2.1.0"

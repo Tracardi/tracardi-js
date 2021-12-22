@@ -1,6 +1,4 @@
-import axios from "axios";
-
-export async function request({url, header, method, data}) {
+export async function request({url, header, method, data, asBeacon=false}) {
 
     if (typeof header == "undefined") {
         header = {"Content-Type": 'application/json'};
@@ -10,11 +8,25 @@ export async function request({url, header, method, data}) {
         method = "get";
     }
 
-    return  await axios({
-        url,
-        method,
-        header,
-        data
-    });
+    if (asBeacon === true) {
+        const blob = new Blob([JSON.stringify(data)], {type : 'application/json'});
+
+        navigator.sendBeacon(
+            config.tracker.url.api + '/track',
+            blob
+        );
+
+    } else {
+
+        let response = await fetch(url, {
+            method: method,
+            headers: header,
+            body: JSON.stringify(data)
+        });
+        response['data'] = await response.json()
+
+        return response;
+
+    }
 
 };

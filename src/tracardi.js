@@ -112,14 +112,15 @@ export default function tracardiPlugin(options) {
                 {
                     method: "POST",
                     url: config.tracker.url.api + '/track',
-                    data: trackEventList.get()
+                    data: trackEventList.get(),
+                    asBeacon: false
                 }
             );
 
             // If browser profile is the same as context profile then consent displayed
             // Consent is displayed when there is new profile created.
 
-            if (typeof response.data.profile.id === "undefined") {
+            if (typeof response?.data?.profile?.id === "undefined") {
                 console.error("[Tracardi] /track must return profile id. No profile id returned.")
             }
 
@@ -209,7 +210,7 @@ export default function tracardiPlugin(options) {
             context: options.context
         },
         methods: {
-            track: async (eventType, payload) => {
+            track: async (eventType, payload, options) => {
                 payload = {
                     event: eventType,
                     properties: (payload) ? payload : {}
@@ -221,11 +222,16 @@ export default function tracardiPlugin(options) {
                 trackerPayload.options = window.response.context;
                 trackerPayload.events = [event.dynamic(eventPayload)];
 
+                // console.log("payload", payload)
+                // console.log("eventType", eventType)
+                // console.log("options", options)
+
                 const response = await request(
                     {
                         method: "POST",
                         url: config.tracker.url.api + '/track',
-                        data: trackerPayload
+                        data: trackerPayload,
+                        asBeacon: options?.asBeacon === true
                     }
                 );
 
@@ -359,20 +365,25 @@ export default function tracardiPlugin(options) {
 
             const eventPayload = getEventPayload(payload, config.tracker.context)
 
-            if (typeof payload.options.fire !== "undefined" && payload.options.fire) {
+            if (payload?.options?.fire === true) {
                 try {
+
                     immediateTrackEventList.add(event.build(eventPayload))
-                    const response = request(
-                        {
-                            method: "POST",
-                            url: config.tracker.url.api + '/track',
-                            data: immediateTrackEventList.get()
-                        }
-                    );
+
+                   const response = request(
+                            {
+                                method: "POST",
+                                url: config.tracker.url.api + '/track',
+                                data: immediateTrackEventList.get(),
+                                asBeacon: payload?.options?.asBeacon === true
+                            },
+
+                        );
                     console.warn("[Tracardi] Tracking with option `fire: true` will not trigger listeners such as onContextReady, onConsentRequired, etc.")
 
                     immediateTrackEventList.reset();
                     return response
+
                 } catch (e) {
                     handleError(e);
                 }
