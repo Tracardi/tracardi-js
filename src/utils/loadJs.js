@@ -1,9 +1,12 @@
-export default function loadJS(url, main, location, tag){
+export default function loadJS(tag, url, main){
+    console.log(tag)
     const scriptTag = document.createElement(tag);
     scriptTag.src = url;
 
-    scriptTag.onload = main;
-    scriptTag.onreadystatechange = main;
+    if(main) {
+        scriptTag.onload = main;
+        scriptTag.onreadystatechange = main;
+    }
 
-    location.appendChild(scriptTag);
+    document.body.appendChild(scriptTag);
 };

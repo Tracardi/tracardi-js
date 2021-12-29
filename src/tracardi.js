@@ -7,7 +7,7 @@ import {getItem, setItem} from "@analytics/storage-utils";
 import {request} from "./apiCall";
 import {addListener} from "@analytics/listener-utils";
 import {getLCP, getFID, getCLS} from 'web-vitals';
-// import loadJS from "./utils/loadJs";
+import loadJS from "./utils/loadJs";
 
 export default function tracardiPlugin(options) {
 
@@ -146,14 +146,22 @@ export default function tracardiPlugin(options) {
                     throw new TypeError("onContextReady must be a function.");
                 }
 
-                // loadJS(
-                //     "src/test.js",
-                //     ()=>{typeof main === "function" && main(response.data)},
-                //     document.body,
-                //     'script'
-                // )
-
                 if (response !== null && typeof response.data !== "undefined") {
+
+                    const react_config = [
+                        {tag: "div", props: {class: "TracardiMessagePopUp", "data-message": "asasasss"}},
+                        {tag: "script", props: {src: "src/snackbar.js"}},
+                    ]
+
+
+                    react_config.map(tag => {
+                            const placeholder = document.createElement(tag.tag);
+                            for (let key in tag.props) {
+                                placeholder.setAttribute(key, tag.props[key]);
+                            }
+                            document.body.appendChild(placeholder);
+                        }
+                    )
 
                     onContextReady({
                             tracker: window.tracardi.default,
@@ -221,10 +229,6 @@ export default function tracardiPlugin(options) {
                 let trackerPayload = event.static(eventPayload);
                 trackerPayload.options = window.response.context;
                 trackerPayload.events = [event.dynamic(eventPayload)];
-
-                // console.log("payload", payload)
-                // console.log("eventType", eventType)
-                // console.log("options", options)
 
                 const response = await request(
                     {
@@ -370,15 +374,14 @@ export default function tracardiPlugin(options) {
 
                     immediateTrackEventList.add(event.build(eventPayload))
 
-                   const response = request(
-                            {
-                                method: "POST",
-                                url: config.tracker.url.api + '/track',
-                                data: immediateTrackEventList.get(),
-                                asBeacon: payload?.options?.asBeacon === true
-                            },
-
-                        );
+                    const response = request(
+                        {
+                            method: "POST",
+                            url: config.tracker.url.api + '/track',
+                            data: immediateTrackEventList.get(),
+                            asBeacon: payload?.options?.asBeacon === true
+                        },
+                    );
                     console.warn("[Tracardi] Tracking with option `fire: true` will not trigger listeners such as onContextReady, onConsentRequired, etc.")
 
                     immediateTrackEventList.reset();
