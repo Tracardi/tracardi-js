@@ -7,7 +7,6 @@ import {getItem, setItem} from "@analytics/storage-utils";
 import {request} from "./apiCall";
 import {addListener} from "@analytics/listener-utils";
 import {getLCP, getFID, getCLS} from 'web-vitals';
-import loadJS from "./utils/loadJs";
 
 export default function tracardiPlugin(options) {
 
@@ -148,20 +147,18 @@ export default function tracardiPlugin(options) {
 
                 if (response !== null && typeof response.data !== "undefined") {
 
-                    const react_config = [
-                        {tag: "div", props: {class: "TracardiMessagePopUp", "data-message": "asasasss"}},
-                        {tag: "script", props: {src: "src/snackbar.js"}},
-                    ]
-
-
-                    react_config.map(tag => {
-                            const placeholder = document.createElement(tag.tag);
-                            for (let key in tag.props) {
-                                placeholder.setAttribute(key, tag.props[key]);
+                    // Ux
+                    if (Array.isArray(response?.data?.ux)) {
+                        response.data.ux.map(tag => {
+                                console.log(tag)
+                                const placeholder = document.createElement(tag.tag);
+                                for (let key in tag.props) {
+                                    placeholder.setAttribute(key, tag.props[key]);
+                                }
+                                document.body.appendChild(placeholder);
                             }
-                            document.body.appendChild(placeholder);
-                        }
-                    )
+                        )
+                    }
 
                     onContextReady({
                             tracker: window.tracardi.default,
