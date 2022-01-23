@@ -6,7 +6,7 @@ import EventsList from './domain/eventsList';
 import {getItem, setItem} from "@analytics/storage-utils";
 import {request} from "./apiCall";
 import {addListener} from "@analytics/listener-utils";
-import {getLCP, getFID, getCLS} from 'web-vitals';
+// import {getLCP, getFID, getCLS} from 'web-vitals';
 
 export default function tracardiPlugin(options) {
 
@@ -133,6 +133,24 @@ export default function tracardiPlugin(options) {
 
         documentReady(() => {
 
+            if (response !== null && typeof response.data !== "undefined") {
+
+                // Ux
+                if (Array.isArray(response?.data?.ux)) {
+                    console.log("[Tracardi] UIX found.")
+                    response.data.ux.map(tag => {
+                            console.log(tag)
+                            const placeholder = document.createElement(tag.tag);
+                            for (let key in tag.props) {
+                                placeholder.setAttribute(key, tag.props[key]);
+                            }
+                            document.body.appendChild(placeholder);
+                        }
+                    )
+                }
+
+            }
+
             if (typeof config.listeners === "undefined") {
                 return
             }
@@ -146,19 +164,6 @@ export default function tracardiPlugin(options) {
                 }
 
                 if (response !== null && typeof response.data !== "undefined") {
-
-                    // Ux
-                    if (Array.isArray(response?.data?.ux)) {
-                        response.data.ux.map(tag => {
-                                console.log(tag)
-                                const placeholder = document.createElement(tag.tag);
-                                for (let key in tag.props) {
-                                    placeholder.setAttribute(key, tag.props[key]);
-                                }
-                                document.body.appendChild(placeholder);
-                            }
-                        )
-                    }
 
                     onContextReady({
                             tracker: window.tracardi.default,
