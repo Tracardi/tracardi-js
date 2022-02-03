@@ -21,7 +21,8 @@ export async function request({url, header, method, data, asBeacon=false}) {
         let response = await fetch(url, {
             method: method,
             headers: header,
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
+            credentials: 'omit'
         });
         response['data'] = await response.json()
 
