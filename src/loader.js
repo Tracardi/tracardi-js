@@ -121,6 +121,11 @@ window.response || (window.response = {context: {}});
 
     documentReady(function () {
 
+        if(navigator.doNotTrack === '1' && options?.tracker?.settings?.respectDoNotTrack === true) {
+            console.log("We are respecting do not track setting. Tracardi disabled.");
+            return;
+        }
+
         let script = document.createElement('script');
         script.type = 'text/javascript';
         script.async = true;
