@@ -29,6 +29,14 @@ export default function tracardiPlugin(options) {
     }
     let singleApiCall = {}
 
+    const isObject = (a) => {
+        return (!!a) && (a.constructor === Object);
+    }
+
+    const isEmptyObjectOrNull = (obj) => {
+        return !obj || obj === null || (isObject(obj) && Object.keys(obj).length === 0);
+    }
+
     const getEventPayload = (payload, context) => {
 
         let eventPayload = {
@@ -371,6 +379,10 @@ export default function tracardiPlugin(options) {
                 eventContext = {
                     page: clientInfo.page()
                 }
+            }
+
+            if (!isEmptyObjectOrNull(payload?.options?.context)) {
+                eventContext = {...eventContext, ...payload?.options?.context}
             }
 
             if (payload?.options?.fire === true) {
