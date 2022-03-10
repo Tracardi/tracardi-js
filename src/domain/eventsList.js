@@ -3,21 +3,23 @@ import Event from './event';
 export default function EventsList(container, profile) {
 
     const eventObject = Event();
+
     if(container !== null) {
         container.events || (container.events = null);
     }
 
     return {
 
-        add: (payload) => {
+        add: (payload, eventContext) => {
             if(container !== null) {
                 // Multiple
                 if(container.events === null) {
                     container = eventObject.static(payload);
                     container.options = profile.context
                     container.events = []
+                    container.context = {}
                 }
-                container.events.push(eventObject.dynamic(payload));
+                container.events.push(eventObject.dynamic(payload, eventContext));
             } else {
                 console.error("[Trackardi] Missing container in EventsList.")
             }

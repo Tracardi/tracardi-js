@@ -51,13 +51,6 @@ export default function tracardiPlugin(options) {
             }
         }
 
-        if (typeof context.page === "undefined" || context.page === true) {
-            eventPayload.context.page = {
-                ...eventPayload.context.page,
-                local: clientInfo.page()
-            }
-        }
-
         if (typeof context.screen === "undefined" || context.screen === true) {
             eventPayload.context.screen = {
                 ...eventPayload.context.screen,
@@ -77,10 +70,6 @@ export default function tracardiPlugin(options) {
                 ...eventPayload.context.storage,
                 cookies: clientInfo.cookies()
             }
-        }
-
-        if (payload.userId) {
-            eventPayload['user'] = {id: payload.userId}
         }
 
         if (payload.options) {
@@ -139,7 +128,7 @@ export default function tracardiPlugin(options) {
                 if (Array.isArray(response?.data?.ux)) {
                     console.log("[Tracardi] UIX found.")
                     response.data.ux.map(tag => {
-                            console.log(tag)
+                            console.debug(tag)
                             const placeholder = document.createElement(tag.tag);
                             for (let key in tag.props) {
                                 placeholder.setAttribute(key, tag.props[key]);
@@ -148,7 +137,6 @@ export default function tracardiPlugin(options) {
                         }
                     )
                 }
-
             }
 
             if (typeof config.listeners === "undefined") {
@@ -221,6 +209,13 @@ export default function tracardiPlugin(options) {
         },
         methods: {
             track: async (eventType, payload, options) => {
+                let eventContext = {}
+                if (typeof config.tracker.context.page === "undefined" || config.tracker.context.page === true) {
+                    eventContext = {
+                        page: clientInfo.page()
+                    }
+                }
+
                 payload = {
                     event: eventType,
                     properties: (payload) ? payload : {}
@@ -230,7 +225,7 @@ export default function tracardiPlugin(options) {
 
                 let trackerPayload = event.static(eventPayload);
                 trackerPayload.options = window.response.context;
-                trackerPayload.events = [event.dynamic(eventPayload)];
+                trackerPayload.events = [event.dynamic(eventPayload, eventContext)];
 
                 const response = await request(
                     {
@@ -371,10 +366,17 @@ export default function tracardiPlugin(options) {
 
             const eventPayload = getEventPayload(payload, config.tracker.context)
 
+            let eventContext = {}
+            if (typeof config.tracker.context.page === "undefined" || config.tracker.context.page === true) {
+                eventContext = {
+                    page: clientInfo.page()
+                }
+            }
+
             if (payload?.options?.fire === true) {
                 try {
 
-                    immediateTrackEventList.add(event.build(eventPayload))
+                    immediateTrackEventList.add(event.build(eventPayload), eventContext)
 
                     const response = request(
                         {
@@ -393,7 +395,7 @@ export default function tracardiPlugin(options) {
                     handleError(e);
                 }
             } else {
-                trackEventList.add(event.build(eventPayload));
+                trackEventList.add(event.build(eventPayload), eventContext);
             }
         },
 

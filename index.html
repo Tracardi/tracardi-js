@@ -9,47 +9,47 @@
     <script>
 
         const options = {
-            // listeners: {
-            //     onContextReady: ({helpers, context}) => {
-            //         document.getElementById('response').innerText = JSON.stringify(context, null, " ");
-            //
-            //         const btn0 = document.querySelector('#page-view-event')
-            //         btn0.style.backgroundColor = "red";
-            //         btn0.style.color="white";
-            //
-            //         helpers.addListener(btn0, 'mouseover', async ()=> {
-            //             try {
-            //                 const response = await helpers.track("page-view", {"page": "hello"});
-            //
-            //                 if(response) {
-            //                     const responseToCustomEvent = document.getElementById('response-to-custom-event');
-            //                     responseToCustomEvent.innerText = JSON.stringify(response.data, null, " ");
-            //                     responseToCustomEvent.style.display = "block"
-            //                 }
-            //             } catch (e) {
-            //                 alert(e)
-            //             }
-            //
-            //         });
-            //     },
-            //     onSessionSet: () => {},
-            //     onConsentRequired: () => {
-            //         const consentBox = document.getElementById('consentBox');
-            //         if (consentBox) {
-            //             consentBox.style.display = "block";
-            //         }
-            //     }
-            // },
+            listeners: {
+                onContextReady: ({helpers, context}) => {
+                    document.getElementById('response').innerText = JSON.stringify(context, null, " ");
+
+                    const btn0 = document.querySelector('#page-view-event')
+                    btn0.style.backgroundColor = "red";
+                    btn0.style.color="white";
+
+                    helpers.addListener(btn0, 'mouseover', async ()=> {
+                        try {
+                            const response = await helpers.track("page-view", {"page": "hello"});
+
+                            if(response) {
+                                const responseToCustomEvent = document.getElementById('response-to-custom-event');
+                                responseToCustomEvent.innerText = JSON.stringify(response.data, null, " ");
+                                responseToCustomEvent.style.display = "block"
+                            }
+                        } catch (e) {
+                            alert(e)
+                        }
+
+                    });
+                },
+                onSessionSet: () => {},
+                onConsentRequired: () => {
+                    const consentBox = document.getElementById('consentBox');
+                    if (consentBox) {
+                        consentBox.style.display = "block";
+                    }
+                }
+            },
             tracker: {
                 url: {
                     script: 'dist/liliput.min.js',
-                    api: 'http://192.168.1.123:8686'
+                    api: 'http://localhost:8686'
                 },
                 source: {
-                    id: "d2801b62-c0e2-415b-b454-01a56a1c30bf"
+                    id: "@test-resource"
                 },
                 context: {
-                    page: false,
+                    page: true,
                     browser: false,
                     screen: false
                 },
@@ -64,7 +64,7 @@
     </script>
     <script>
         window.response.context.profile = true;
-        window.tracker.track("page-view", {"product": "Sun glasses - Badoo", "price": 13.45})
+        window.tracker.track("page-view", {"product": "Sun glasses - Badoo", "price": 13.45}, {"test": 1})
         // window.tracker.track("profile-interest", {"Vacation": 1})
         // window.tracker.track("page-view", {"basket": 1});
         // window.tracker.track("personal-data", {

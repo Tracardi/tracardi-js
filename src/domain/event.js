@@ -1,24 +1,22 @@
 export default function Event() {
     return {
-        build: ({type, source, metadata, session, profile, context, properties, user, options}) => {
+        build: ({type, source, session, profile, context, properties, options}) => {
             return {
                 type: type,
-                // metadata: metadata,
                 session: session,
                 profile: profile,
                 context: context,
                 properties: properties,
-                user: user,
                 source: source,
                 options: options
             }
         },
-        dynamic: (data) => {
+        dynamic: (data, eventContext) => {
             return {
                 properties: data.properties,
                 type: data.type,
-                user: data.user,
-                options: data.options
+                options: data.options,
+                context: eventContext
             }
         },
         static: (payload) => {
