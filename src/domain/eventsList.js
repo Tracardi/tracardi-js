@@ -17,7 +17,6 @@ export default function EventsList(container, profile) {
                     container = eventObject.static(payload);
                     container.options = profile.context
                     container.events = []
-                    container.context = {}
                 }
                 container.events.push(eventObject.dynamic(payload, eventContext));
             } else {

@@ -52,28 +52,28 @@ export default function tracardiPlugin(options) {
             properties: payload.properties,
         }
 
-        if (typeof context.browser === "undefined" || context.browser === true) {
+        if (context?.browser === true) {
             eventPayload.context.browser = {
                 ...eventPayload.context.browser,
                 local: clientInfo.browser()
             }
         }
 
-        if (typeof context.screen === "undefined" || context.screen === true) {
+        if (context?.screen === true) {
             eventPayload.context.screen = {
                 ...eventPayload.context.screen,
                 local: clientInfo.screen()
             }
         }
 
-        if (context.storage === true) {
+        if (context?.storage === true) {
             eventPayload.context.storage = {
                 ...eventPayload.context.storage,
                 local: clientInfo.storage()
             }
         }
 
-        if (context.cookies === true) {
+        if (context?.cookies === true) {
             eventPayload.context.storage = {
                 ...eventPayload.context.storage,
                 cookies: clientInfo.cookies()
@@ -218,7 +218,7 @@ export default function tracardiPlugin(options) {
         methods: {
             track: async (eventType, payload, options) => {
                 let eventContext = {}
-                if (typeof config.tracker.context.page === "undefined" || config.tracker.context.page === true) {
+                if (config?.tracker?.context?.page === true) {
                     eventContext = {
                         page: clientInfo.page()
                     }
