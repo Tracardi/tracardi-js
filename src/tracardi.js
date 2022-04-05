@@ -52,14 +52,14 @@ export default function tracardiPlugin(options) {
             properties: payload.properties,
         }
 
-        if (context?.browser === true) {
+        if (typeof context.browser === "undefined" || context?.browser === true) {
             eventPayload.context.browser = {
                 ...eventPayload.context.browser,
                 local: clientInfo.browser()
             }
         }
 
-        if (context?.screen === true) {
+        if (typeof context.screen === "undefined" || context?.screen === true) {
             eventPayload.context.screen = {
                 ...eventPayload.context.screen,
                 local: clientInfo.screen()
@@ -77,6 +77,12 @@ export default function tracardiPlugin(options) {
             eventPayload.context.storage = {
                 ...eventPayload.context.storage,
                 cookies: clientInfo.cookies()
+            }
+        }
+        if (context?.performance === true && typeof window?.performance?.getEntriesByType === 'function') {
+            const performance = window.performance.getEntriesByType("navigation")
+            if (Array.isArray( performance) && performance.length > 0) {
+                eventPayload.context.performance = performance[0]
             }
         }
 
@@ -302,7 +308,7 @@ export default function tracardiPlugin(options) {
 
         initialize: ({config}) => {
 
-            console.debug("[Tracker] Plugin init", config)
+            console.debug("[Tracker] Plugin init configuration", config)
 
             singleApiCall = {
                 tracks: false
