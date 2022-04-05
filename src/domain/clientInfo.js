@@ -66,6 +66,7 @@ export default function ClientInfo() {
         },
 
         screen: () => {
+            const orientation = (screen.orientation || {}).type || screen.mozOrientation || screen.msOrientation;
             return {
                 width: screen.width,
                 height: screen.height,
@@ -75,6 +76,7 @@ export default function ClientInfo() {
                 availHeight: screen.availHeight,
                 colorDepth: screen.colorDepth,
                 pixelDepth: screen.pixelDepth,
+                orientation: orientation === undefined ? "n/a" : orientation
             }
         },
 
