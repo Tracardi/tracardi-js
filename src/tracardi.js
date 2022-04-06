@@ -86,6 +86,30 @@ export default function tracardiPlugin(options) {
             }
         }
 
+
+
+        if (typeof context.utm === "undefined" || context?.utm === true) {
+            const queryString = window.location.search
+            const urlParams = new URLSearchParams(queryString)
+
+            const hasUtm = urlParams.has('utm_source') ||
+                urlParams.has('utm_medium') ||
+                urlParams.has('utm_campaign') ||
+                urlParams.has('utm_term') ||
+                urlParams.has('utm_content')
+
+            if(hasUtm) {
+                const utm = {
+                    ...(urlParams.has('utm_source'))  && {source: urlParams.get("utm_source")},
+                    ...(urlParams.has('utm_medium'))  && {medium: urlParams.get("utm_medium")},
+                    ...(urlParams.has('utm_campaign'))  && {campaign: urlParams.get("utm_campaign")},
+                    ...(urlParams.has('utm_term'))  && {term: urlParams.get("utm_term")},
+                    ...(urlParams.has('utm_content'))  && {content: urlParams.get("utm_content")},
+                }
+                eventPayload.context.utm = utm
+            }
+        }
+
         if (payload.options) {
             eventPayload['options'] = payload.options
         }
