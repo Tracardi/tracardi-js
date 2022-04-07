@@ -24,7 +24,22 @@ export default function EventsList(container, profile) {
             }
 
         },
-        get: () => {
+        get: (config) => {
+            // Add performance to each event if configured
+
+            if (config?.tracker?.context?.performance === true && typeof window?.performance?.getEntriesByType === 'function') {
+                const performance = window.performance.getEntriesByType("navigation")
+                if (Array.isArray( performance) && performance.length > 0) {
+                    container.events = container.events.map(event => {
+                        event.context = {
+                            ...event.context,
+                            performance: performance[0]
+                        }
+                        return event
+                    })
+                }
+            }
+
             return container;
         },
 

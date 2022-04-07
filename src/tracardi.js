@@ -79,14 +79,6 @@ export default function tracardiPlugin(options) {
                 cookies: clientInfo.cookies()
             }
         }
-        if (context?.performance === true && typeof window?.performance?.getEntriesByType === 'function') {
-            const performance = window.performance.getEntriesByType("navigation")
-            if (Array.isArray( performance) && performance.length > 0) {
-                eventPayload.context.performance = performance[0]
-            }
-        }
-
-
 
         if (typeof context.utm === "undefined" || context?.utm === true) {
             const queryString = window.location.search
@@ -138,7 +130,7 @@ export default function tracardiPlugin(options) {
                 {
                     method: "POST",
                     url: config.tracker.url.api + '/track',
-                    data: trackEventList.get(),
+                    data: trackEventList.get(config),
                     asBeacon: false
                 }
             );
@@ -424,7 +416,7 @@ export default function tracardiPlugin(options) {
                         {
                             method: "POST",
                             url: config.tracker.url.api + '/track',
-                            data: immediateTrackEventList.get(),
+                            data: immediateTrackEventList.get(config),
                             asBeacon: payload?.options?.asBeacon === true
                         },
                     );
