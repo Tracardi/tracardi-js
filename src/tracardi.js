@@ -8,6 +8,9 @@ import {request} from "./apiCall";
 import {addListener} from "@analytics/listener-utils";
 // import {getLCP, getFID, getCLS} from 'web-vitals';
 
+window.onTracardiReady || (window.onTracardiReady = () => {
+});
+
 export default function tracardiPlugin(options) {
 
     const clientInfo = ClientInfo();
@@ -18,7 +21,6 @@ export default function tracardiPlugin(options) {
     const immediateTrackEventList = EventsList({}, window.response);
     const cookieName = 'tracardi-session-id';
     const profileName = 'tracardi-profile-id';
-    const consentKey = 'tracardi-consent-id';
     let profileId = getItem(profileName)
     let sessionId = getCookie(cookieName);
     if (!sessionId) {
@@ -90,13 +92,13 @@ export default function tracardiPlugin(options) {
                 urlParams.has('utm_term') ||
                 urlParams.has('utm_content')
 
-            if(hasUtm) {
+            if (hasUtm) {
                 const utm = {
-                    ...(urlParams.has('utm_source'))  && {source: urlParams.get("utm_source")},
-                    ...(urlParams.has('utm_medium'))  && {medium: urlParams.get("utm_medium")},
-                    ...(urlParams.has('utm_campaign'))  && {campaign: urlParams.get("utm_campaign")},
-                    ...(urlParams.has('utm_term'))  && {term: urlParams.get("utm_term")},
-                    ...(urlParams.has('utm_content'))  && {content: urlParams.get("utm_content")},
+                    ...(urlParams.has('utm_source')) && {source: urlParams.get("utm_source")},
+                    ...(urlParams.has('utm_medium')) && {medium: urlParams.get("utm_medium")},
+                    ...(urlParams.has('utm_campaign')) && {campaign: urlParams.get("utm_campaign")},
+                    ...(urlParams.has('utm_term')) && {term: urlParams.get("utm_term")},
+                    ...(urlParams.has('utm_content')) && {content: urlParams.get("utm_content")},
                 }
                 eventPayload.context.utm = utm
             }
@@ -152,75 +154,35 @@ export default function tracardiPlugin(options) {
 
         documentReady(() => {
 
-            if (response !== null && typeof response.data !== "undefined") {
-
-                // Ux
-                if (Array.isArray(response?.data?.ux)) {
-                    console.log("[Tracardi] UIX found.")
-                    response.data.ux.map(tag => {
-                            console.debug(tag)
-                            const placeholder = document.createElement(tag.tag);
-                            for (let key in tag.props) {
-                                placeholder.setAttribute(key, tag.props[key]);
-                            }
-                            document.body.appendChild(placeholder);
-                        }
-                    )
-                }
+            const params = {
+                tracker: window.tracardi.default,
+                helpers: window.tracardi.default.plugins.tracardi,
+                context: response !== null && typeof response.data !== "undefined" ? response.data : null,
+                config: config
             }
 
-            if (typeof config.listeners === "undefined") {
-                return
+            window.onTracardiReady(params)
+
+            // Ux
+            if (Array.isArray(response?.data?.ux)) {
+                console.log("[Tracardi] UIX found.")
+                response.data.ux.map(tag => {
+                        console.debug(tag)
+                        const placeholder = document.createElement(tag.tag);
+                        for (let key in tag.props) {
+                            placeholder.setAttribute(key, tag.props[key]);
+                        }
+                        document.body.appendChild(placeholder);
+                    }
+                )
             }
 
             // onContextReady event
-            if (typeof config.listeners.onContextReady !== "undefined") {
+            if (typeof config?.listeners?.onContextReady === "function") {
                 const onContextReady = config.listeners.onContextReady
-
-                if (typeof onContextReady !== "function") {
-                    throw new TypeError("onContextReady must be a function.");
-                }
-
-                if (response !== null && typeof response.data !== "undefined") {
-
-                    onContextReady({
-                            tracker: window.tracardi.default,
-                            helpers: window.tracardi.default.plugins.tracardi,
-                            context: response.data
-                        }
-                    );
-
-                    // onConsentRequired
-                    const isConsentGiven = getItem(consentKey) === response.data.profile.id;
-
-                    if (typeof response.data.source.consent !== "undefined" && response.data.source.consent !== null) {
-                        if (response.data.source.consent === true && !isConsentGiven) {
-                            if (typeof config.listeners.onConsentRequired !== "undefined") {
-                                const onConsentRequired = config.listeners.onConsentRequired
-
-                                if (typeof onConsentRequired !== "function") {
-                                    throw new TypeError("onConsentRequired must be a function.");
-                                }
-
-                                onConsentRequired({
-                                    context: response.data,
-                                    tracker: window.tracardi.default,
-                                });
-
-                            }
-                        }
-                    }
-
-                } else {
-
-                    onContextReady({
-                        tracker: window.tracardi.default,
-                        helpers: window.tracardi.default.plugins.tracardi,
-                        context: null
-                    });
-
-                }
-
+                onContextReady(params);
+            } else {
+                throw new TypeError("onContextReady must be a function.");
             }
 
         });
@@ -274,9 +236,6 @@ export default function tracardiPlugin(options) {
             },
             addListener: (object, event, func) => {
                 return addListener(object, event, func);
-            },
-            consentSubmitted() {
-                setItem(consentKey, profileId);
             }
         },
 
