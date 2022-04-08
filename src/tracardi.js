@@ -8,8 +8,7 @@ import {request} from "./apiCall";
 import {addListener} from "@analytics/listener-utils";
 // import {getLCP, getFID, getCLS} from 'web-vitals';
 
-window.onTracardiReady || (window.onTracardiReady = () => {
-});
+
 
 export default function tracardiPlugin(options) {
 
@@ -37,6 +36,16 @@ export default function tracardiPlugin(options) {
 
     const isEmptyObjectOrNull = (obj) => {
         return !obj || obj === null || (isObject(obj) && Object.keys(obj).length === 0);
+    }
+
+    const hasMethods = function(obj /*, method list as strings */){
+        let i = 1, methodName;
+        while((methodName = arguments[i++])){
+            if(typeof obj[methodName] != 'function') {
+                return false;
+            }
+        }
+        return true;
     }
 
     const getEventPayload = (payload, context) => {
@@ -161,7 +170,12 @@ export default function tracardiPlugin(options) {
                 config: config
             }
 
-            window.onTracardiReady(params)
+            // onTracardiReady
+            if (typeof window.onTracardiReady === 'object' && hasMethods(window.onTracardiReady, 'bind', 'call')) {
+                window.onTracardiReady.call(params)
+            } else {
+                console.error("[Tracardi] Incorrect window.onTracardiReady. Please use bind do not assign value to window.onTracardiReady.")
+            }
 
             // Ux
             if (Array.isArray(response?.data?.ux)) {
@@ -175,14 +189,6 @@ export default function tracardiPlugin(options) {
                         document.body.appendChild(placeholder);
                     }
                 )
-            }
-
-            // onContextReady event
-            if (typeof config?.listeners?.onContextReady === "function") {
-                const onContextReady = config.listeners.onContextReady
-                onContextReady(params);
-            } else {
-                throw new TypeError("onContextReady must be a function.");
             }
 
         });

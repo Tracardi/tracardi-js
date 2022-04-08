@@ -74,8 +74,23 @@
     }
 })("documentReady", window);
 
+const bindListeners = [];
+
 window.tracker || (window.tracker = {});
 window.response || (window.response = {context: {}});
+window.onTracardiReady = {
+    bind: (func) => {
+        if(typeof func === "function") {
+            bindListeners.push(func)
+        }
+    },
+
+    call: (params) => {
+        bindListeners.forEach((func) => {
+            func(params)
+        })
+    }
+};
 
 (function () {
 
