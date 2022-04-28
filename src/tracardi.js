@@ -8,8 +8,6 @@ import {request} from "./apiCall";
 import {addListener} from "@analytics/listener-utils";
 // import {getLCP, getFID, getCLS} from 'web-vitals';
 
-
-
 export default function tracardiPlugin(options) {
 
     const clientInfo = ClientInfo();

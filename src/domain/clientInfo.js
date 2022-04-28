@@ -43,6 +43,28 @@ export default function ClientInfo() {
         }
     }
 
+    const browserDetect = () => {
+
+        let userAgent = navigator.userAgent;
+        let browserName;
+
+        if(userAgent.match(/chrome|chromium|crios/i)){
+            browserName = "chrome";
+        }else if(userAgent.match(/firefox|fxios/i)){
+            browserName = "firefox";
+        }  else if(userAgent.match(/safari/i)){
+            browserName = "safari";
+        }else if(userAgent.match(/opr\//i)){
+            browserName = "opera";
+        } else if(userAgent.match(/edg/i)){
+            browserName = "edge";
+        }else{
+            browserName="n/a";
+        }
+
+        return browserName
+    }
+
     return {
 
         time: () => {
@@ -84,7 +106,7 @@ export default function ClientInfo() {
             if (typeof navigator !== "undefined") {
                 const browserInfo = {
                     browser: {
-                        name: navigator.appName,
+                        name: browserDetect(),
                         engine: navigator.product,
                         appVersion: navigator.appVersion,
                         userAgent: navigator.userAgent,
