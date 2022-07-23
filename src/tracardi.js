@@ -3,10 +3,27 @@ import {v4 as uuid4} from 'uuid';
 import Event from './domain/event';
 import ClientInfo from './domain/clientInfo';
 import EventsList from './domain/eventsList';
-import {getItem, setItem} from "@analytics/storage-utils";
+import {getItem, removeItem, setItem} from "@analytics/storage-utils";
 import {request} from "./apiCall";
 import {addListener} from "@analytics/listener-utils";
 // import {getLCP, getFID, getCLS} from 'web-vitals';
+
+const getExternal = async ({url, method, body = null}) => {
+
+    // https://api.myip.com/
+    // https://api.ipify.org?format=json
+
+    try {
+        const response = await request({
+            method,
+            url,
+            body
+        })
+        return response.data
+    } catch (e) {
+        return {}
+    }
+}
 
 export default function tracardiPlugin(options) {
 
@@ -36,17 +53,54 @@ export default function tracardiPlugin(options) {
         return !obj || obj === null || (isObject(obj) && Object.keys(obj).length === 0);
     }
 
-    const hasMethods = function(obj /*, method list as strings */){
+    const hasMethods = function (obj /*, method list as strings */) {
         let i = 1, methodName;
-        while((methodName = arguments[i++])){
-            if(typeof obj[methodName] != 'function') {
+        while ((methodName = arguments[i++])) {
+            if (typeof obj[methodName] != 'function') {
                 return false;
             }
         }
         return true;
     }
 
-    const getEventPayload = (payload, context) => {
+    const fireExternalApiCalls = async (config, eventPayload) => {
+        await Promise.all(config.map(
+            async (externalConfig) => {
+                let data = getItem(externalConfig.storage)
+                if (data) {
+                    try {
+                        eventPayload.context = {
+                            ...eventPayload.context,
+                            [externalConfig.key]: JSON.parse(data)
+                        }
+                    } catch (e) {
+                        removeItem(externalConfig.storage)
+                    }
+                } else {
+                    try {
+                        const data = await getExternal({
+                            url: externalConfig?.url,
+                            method: externalConfig?.method,
+                            body: externalConfig?.body
+                        })
+                        if (data) {
+                            setItem(externalConfig.storage, JSON.stringify(data));
+                            eventPayload.context = {
+                                ...eventPayload.context,
+                                [externalConfig.key]: data
+                            }
+                        }
+                    } catch (e) {
+                        console.log(e)
+                    }
+                }
+            }
+        ))
+
+        return eventPayload
+    }
+
+    const getEventPayload = async (payload, context) => {
 
         let eventPayload = {
             type: payload.event,
@@ -87,6 +141,11 @@ export default function tracardiPlugin(options) {
                 ...eventPayload.context.storage,
                 cookies: clientInfo.cookies()
             }
+        }
+
+        // Externals
+        if (config?.tracker?.external) {
+            eventPayload = await fireExternalApiCalls(config?.tracker?.external, eventPayload)
         }
 
         if (typeof context.utm === "undefined" || context?.utm === true) {
@@ -217,7 +276,7 @@ export default function tracardiPlugin(options) {
                     properties: (payload) ? payload : {}
                 }
 
-                const eventPayload = getEventPayload(payload, config.tracker.context);
+                const eventPayload = await getEventPayload(payload, config.tracker.context);
 
                 let trackerPayload = event.static(eventPayload);
                 trackerPayload.options = window.response.context;
@@ -283,6 +342,7 @@ export default function tracardiPlugin(options) {
                     browser: true
                 }
             }
+
         },
 
         initialize: ({config}) => {
@@ -345,10 +405,9 @@ export default function tracardiPlugin(options) {
             }
 
             window.config = config
-
         },
 
-        track: ({payload, config}) => {
+        track: async ({payload, config}) => {
 
             if (typeof config == 'undefined' || typeof config.tracker == 'undefined' || typeof config.tracker.source === 'undefined') {
                 console.error("[Tracker] config.tracker.source undefined.");
@@ -357,7 +416,7 @@ export default function tracardiPlugin(options) {
 
             console.debug("[Tracker] Event track", payload);
 
-            const eventPayload = getEventPayload(payload, config.tracker.context)
+            const eventPayload = await getEventPayload(payload, config.tracker.context)
 
             let eventContext = {}
             if (typeof config.tracker.context.page === "undefined" || config.tracker.context.page === true) {

@@ -45,6 +45,10 @@
                     script: 'dist/liliput.min.js',
                     api: 'http://localhost:8686'
                 },
+                external: [
+                    {url: 'https://api.ipify.org?format=json', storage: "__tr_l", key: "location"},
+                    {url: 'https://api.myip.com/', storage: "__tr_l1", key: "location1"}
+                    ],
                 source: {
                     id: "@test-source"
                 },

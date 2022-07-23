@@ -17,13 +17,18 @@ export async function request({url, header, method, data, asBeacon=false}) {
         );
 
     } else {
-
-        let response = await fetch(url, {
+        let payload = {
             method: method,
             headers: header,
             body: JSON.stringify(data),
             credentials: 'omit'
-        });
+        }
+
+        if (data) {
+            payload['body'] = JSON.stringify(data)
+        }
+
+        let response = await fetch(url, payload);
         response['data'] = await response.json()
 
         return response;
