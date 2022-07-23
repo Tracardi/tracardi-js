@@ -8,23 +8,6 @@ import {request} from "./apiCall";
 import {addListener} from "@analytics/listener-utils";
 // import {getLCP, getFID, getCLS} from 'web-vitals';
 
-const getExternal = async ({url, method, body = null}) => {
-
-    // https://api.myip.com/
-    // https://api.ipify.org?format=json
-
-    try {
-        const response = await request({
-            method,
-            url,
-            body
-        })
-        return response.data
-    } catch (e) {
-        return {}
-    }
-}
-
 export default function tracardiPlugin(options) {
 
     const clientInfo = ClientInfo();
@@ -78,16 +61,16 @@ export default function tracardiPlugin(options) {
                     }
                 } else {
                     try {
-                        const data = await getExternal({
+                        const response = await request({
                             url: externalConfig?.url,
                             method: externalConfig?.method,
                             body: externalConfig?.body
                         })
-                        if (data) {
-                            setItem(externalConfig.storage, JSON.stringify(data));
+                        if (response?.data) {
+                            setItem(externalConfig.storage, JSON.stringify(response?.data));
                             eventPayload.context = {
                                 ...eventPayload.context,
-                                [externalConfig.key]: data
+                                [externalConfig.key]: response?.data
                             }
                         }
                     } catch (e) {

@@ -25,7 +25,11 @@
                     page: false,
                     browser: false,
                     screen: false
-                }
+                },
+                external: [
+                    {url: 'https://api.ipify.org?format=json', storage: "__tr_1", key: "location1"},
+                    {url: 'https://api.myip.com/', storage: "__tr_2", key: "location2"}
+                ],
             }
         }
 
