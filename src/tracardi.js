@@ -221,10 +221,12 @@ export default function tracardiPlugin(options) {
             if (Array.isArray(response?.data?.ux)) {
                 console.log("[Tracardi] UIX found.")
                 response.data.ux.map(tag => {
-                        console.debug(tag)
                         const placeholder = document.createElement(tag.tag);
                         for (let key in tag.props) {
                             placeholder.setAttribute(key, tag.props[key]);
+                        }
+                        if(tag.content) {
+                            placeholder.text = tag.content
                         }
                         document.body.appendChild(placeholder);
                     }
