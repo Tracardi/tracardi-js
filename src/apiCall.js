@@ -4,6 +4,8 @@ export async function request({url, header, method, data, asBeacon=false}) {
         header = {"Content-Type": 'application/json'};
     }
 
+    header = {...header, "x-timestamp": new Date(Date.now()+(new Date().getTimezoneOffset()*60000)).getTime()}
+
     if (typeof method == "undefined") {
         method = "get";
     }
