@@ -1,4 +1,4 @@
-import {getCookie, setCookie, hasCookies} from '@analytics/cookie-utils';
+import {getCookie, setCookie, hasCookies, removeCookie} from '@analytics/cookie-utils';
 import {v4 as uuid4} from 'uuid';
 import Event from './domain/event';
 import ClientInfo from './domain/clientInfo';
@@ -124,6 +124,17 @@ export default function tracardiPlugin(options) {
                 ...eventPayload.context.storage,
                 cookies: clientInfo.cookies()
             }
+        }
+
+        if(context?.location) {
+            const geo = getCookie('__tr_geo')
+            try {
+                const location = JSON.parse(geo)
+                eventPayload.context.location = location
+            } catch (e) {
+                removeCookie('__tr_geo')
+            }
+
         }
 
         // Externals
@@ -325,6 +336,41 @@ export default function tracardiPlugin(options) {
                     screen: true,
                     page: true,
                     browser: true
+                }
+            }
+
+            if(config?.tracker?.context?.location === true) {
+                config.tracker.context.location = {
+                    url: 'https://geolocation-db.com/json/', data: function (data) {
+                        if (!data) {
+                            return null
+                        }
+                        return {
+                            country: {
+                                name: data.country_name,
+                                code: data.country_code,
+                            },
+                            city: data.city,
+                            county: data.state,
+                            latitude: data.latitude,
+                            longitude: data.longitude,
+                            ip: data.IPv4
+                        }
+                    }
+                }
+            }
+
+            if(config?.tracker?.context?.location?.url) {
+                const geo = getCookie('__tr_geo')
+                if(!geo) {
+                    fetch(config?.tracker?.context?.location?.url, {method: 'get'}).then(response => {
+                        response.json().then(json => {
+                            if(config?.tracker?.context?.location?.data) {
+                                json = config.tracker.context.location.data(json);
+                                setCookie('__tr_geo', JSON.stringify(json), 0);
+                            }
+                        })
+                    });
                 }
             }
 
