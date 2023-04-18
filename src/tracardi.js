@@ -23,13 +23,40 @@ export default function tracardiPlugin(options) {
     if (!sessionId) {
         sessionId = uuid4();
         const expires = 0;
-        setCookie(cookieName, sessionId, expires);
+        setCookie(cookieName, sessionId, expires, '/');
         isCookieSet = false
     }
     let singleApiCall = {}
 
     const isObject = (a) => {
         return (!!a) && (a.constructor === Object);
+    }
+
+    const trackExternalLinks = (profileId, sessionId, sourceId) => {
+        // Add a click event listener to all anchor tags (links) on the page
+        const links = document.getElementsByTagName('a');
+        for (let i = 0; i < links.length; i++) {
+            const link = links[i];
+
+            // Check if the link has a full URL (starts with 'http://' or 'https://')
+            if (link.href.indexOf('http://') === 0 || link.href.indexOf('https://') === 0) {
+                // Add a click event listener to the link
+                link.addEventListener('click', function(event) {
+                    // Prevent the default behavior of the link click, which would cause the browser to navigate to the link's href
+                    event.preventDefault();
+
+                    // Get the href attribute of the clicked link
+                    const href = this.getAttribute('href');
+
+                    const parameter = `__tr_pid=${profileId.trim()}&__tr_sid=${sessionId.trim()}&__tr_src=${sourceId.trim()}`;
+                    const updatedHref = href + (href.indexOf('?') === -1 ? '?' : '&') + parameter;
+
+                    // Navigate to the updated URL
+                    window.location.href = updatedHref;
+                });
+            }
+        }
+
     }
 
     const isEmptyObjectOrNull = (obj) => {
@@ -142,6 +169,25 @@ export default function tracardiPlugin(options) {
             eventPayload = await fireExternalApiCalls(config?.tracker?.external, eventPayload)
         }
 
+        if (typeof context.tracardiPass === "undefined" || context?.tracardiPass === true) {
+            const queryString = window.location.search
+            const urlParams = new URLSearchParams(queryString)
+
+            const hasPid = urlParams.has('__tr_pid') ||
+                urlParams.has('__tr_sid')
+
+            if (hasPid) {
+                const passedPid = {
+                    ...(urlParams.has('__tr_pid')) && {profile: urlParams.get("__tr_pid")},
+                    ...(urlParams.has('__tr_src')) && {source: urlParams.get("__tr_src")},
+                    ...(urlParams.has('__tr_sid')) && {session: urlParams.get("__tr_sid")}
+                }
+                eventPayload.context.tracardi = {
+                    pass: passedPid
+                }
+            }
+        }
+
         if (typeof context.utm === "undefined" || context?.utm === true) {
             const queryString = window.location.search
             const urlParams = new URLSearchParams(queryString)
@@ -207,6 +253,7 @@ export default function tracardiPlugin(options) {
             // Set profile id
             profileId = response.data.profile.id
             setItem(profileName, profileId);
+            setCookie('__tr_pid', profileId, 0, '/')
 
         } catch (e) {
             handleError(e);
@@ -259,6 +306,7 @@ export default function tracardiPlugin(options) {
             context: options.context
         },
         methods: {
+
             track: async (eventType, payload, options) => {
                 let eventContext = {}
                 if (config?.tracker?.context?.page === true) {
@@ -367,11 +415,37 @@ export default function tracardiPlugin(options) {
                         response.json().then(json => {
                             if(config?.tracker?.context?.location?.data) {
                                 json = config.tracker.context.location.data(json);
-                                setCookie('__tr_geo', JSON.stringify(json), 0);
+                                setCookie('__tr_geo', JSON.stringify(json), 0, '/');
                             }
                         })
                     });
                 }
+            }
+
+            if (config?.tracker?.context?.tracardiPass !== true) {
+
+                const queryString = window.location.search
+                const urlParams = new URLSearchParams(queryString)
+
+                if(urlParams.has('__tr_pid')) {
+                    profileId = urlParams.get("__tr_pid")
+                    setItem(profileName, profileId);
+                    setCookie('__tr_pid', profileId, 0, '/')
+                }
+
+                if(urlParams.has('__tr_src')) {
+                    config.tracker.source.id = urlParams.get("__tr_src")
+                }
+
+                if(urlParams.has('__tr_sid')) {
+                    sessionId = urlParams.get("__tr_sid")
+                    setCookie(cookieName, sessionId, 0, '/');
+                }
+            }
+
+            if(config?.tracker?.settings?.trackExternalLinks) {
+                console.log("[Tracker] External links patched.")
+                trackExternalLinks(profileId, sessionId, config?.tracker?.source?.id)
             }
 
         },
