@@ -48,7 +48,7 @@ export default function tracardiPlugin(options) {
                     // Get the href attribute of the clicked link
                     const href = this.getAttribute('href');
 
-                    const parameter = `__tr_pid=${profileId.trim()}&__tr_sid=${sessionId.trim()}&__tr_src=${sourceId.trim()}`;
+                    const parameter = `__tr_pid=${profileId.trim()}&__tr_src=${sourceId.trim()}`;
                     const updatedHref = href + (href.indexOf('?') === -1 ? '?' : '&') + parameter;
 
                     // Navigate to the updated URL
@@ -174,13 +174,12 @@ export default function tracardiPlugin(options) {
             const urlParams = new URLSearchParams(queryString)
 
             const hasPid = urlParams.has('__tr_pid') ||
-                urlParams.has('__tr_sid')
+                urlParams.has('__tr_src')
 
             if (hasPid) {
                 const passedPid = {
                     ...(urlParams.has('__tr_pid')) && {profile: urlParams.get("__tr_pid")},
-                    ...(urlParams.has('__tr_src')) && {source: urlParams.get("__tr_src")},
-                    ...(urlParams.has('__tr_sid')) && {session: urlParams.get("__tr_sid")}
+                    ...(urlParams.has('__tr_src')) && {source: urlParams.get("__tr_src")}
                 }
                 eventPayload.context.tracardi = {
                     pass: passedPid
@@ -422,26 +421,22 @@ export default function tracardiPlugin(options) {
                 }
             }
 
-            if (config?.tracker?.context?.tracardiPass !== true) {
-
-                const queryString = window.location.search
-                const urlParams = new URLSearchParams(queryString)
-
-                if(urlParams.has('__tr_pid')) {
-                    profileId = urlParams.get("__tr_pid")
-                    setItem(profileName, profileId);
-                    setCookie('__tr_pid', profileId, 0, '/')
-                }
-
-                if(urlParams.has('__tr_src')) {
-                    config.tracker.source.id = urlParams.get("__tr_src")
-                }
-
-                if(urlParams.has('__tr_sid')) {
-                    sessionId = urlParams.get("__tr_sid")
-                    setCookie(cookieName, sessionId, 0, '/');
-                }
-            }
+            // if (config?.tracker?.context?.tracardiPass !== true) {
+            //
+            //     const queryString = window.location.search
+            //     const urlParams = new URLSearchParams(queryString)
+            //
+            //     if(urlParams.has('__tr_pid')) {
+            //         profileId = urlParams.get("__tr_pid")
+            //         setItem(profileName, profileId);
+            //         setCookie('__tr_pid', profileId, 0, '/')
+            //     }
+            //
+            //     if(urlParams.has('__tr_sid')) {
+            //         sessionId = urlParams.get("__tr_sid")
+            //         setCookie(cookieName, sessionId, 0, '/');
+            //     }
+            // }
 
             if(config?.tracker?.settings?.trackExternalLinks) {
                 console.log("[Tracker] External links patched.")
