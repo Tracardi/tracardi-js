@@ -32,7 +32,7 @@ export default function tracardiPlugin(options) {
         return (!!a) && (a.constructor === Object);
     }
 
-    const trackExternalLinks = (profileId, sessionId, sourceId) => {
+    const trackExternalLinks = (domains, profileId, sessionId, sourceId) => {
         // Add a click event listener to all anchor tags (links) on the page
         const links = document.getElementsByTagName('a');
         for (let i = 0; i < links.length; i++) {
@@ -40,20 +40,33 @@ export default function tracardiPlugin(options) {
 
             // Check if the link has a full URL (starts with 'http://' or 'https://')
             if (link.href.indexOf('http://') === 0 || link.href.indexOf('https://') === 0) {
-                // Add a click event listener to the link
-                link.addEventListener('click', function(event) {
-                    // Prevent the default behavior of the link click, which would cause the browser to navigate to the link's href
-                    event.preventDefault();
 
-                    // Get the href attribute of the clicked link
-                    const href = this.getAttribute('href');
+                try {
+                    const parsedUrl = new URL(link.href);
+                    const linkDomain = parsedUrl.hostname;
 
-                    const parameter = `__tr_pid=${profileId.trim()}&__tr_src=${sourceId.trim()}`;
-                    const updatedHref = href + (href.indexOf('?') === -1 ? '?' : '&') + parameter;
+                    for (const allowedDomain of domains) {
+                        if (linkDomain.endsWith(allowedDomain)) {
+                            // Add a click event listener to the link
+                            link.addEventListener('click', function (event) {
+                                // Prevent the default behavior of the link click, which would cause the browser to navigate to the link's href
+                                event.preventDefault();
 
-                    // Navigate to the updated URL
-                    window.location.href = updatedHref;
-                });
+                                // Get the href attribute of the clicked link
+                                const href = this.getAttribute('href');
+
+                                const parameter = `__tr_pid=${profileId.trim()}&__tr_src=${sourceId.trim()}`;
+                                const updatedHref = href + (href.indexOf('?') === -1 ? '?' : '&') + parameter;
+
+                                // Navigate to the updated URL
+                                window.location.href = updatedHref;
+                            });
+                            console.log(`[Tracker] Patched Link: ${link.href}`)
+                        }
+                    }
+                } catch (error) {
+                    console.error('Invalid URL: ' + link.href);
+                }
             }
         }
 
@@ -438,9 +451,11 @@ export default function tracardiPlugin(options) {
             //     }
             // }
 
-            if(config?.tracker?.settings?.trackExternalLinks) {
+            const domains  = config?.tracker?.settings?.trackExternalLinks
+
+            if(domains && Array.isArray(domains) && domains.length > 0) {
                 console.log("[Tracker] External links patched.")
-                trackExternalLinks(profileId, sessionId, config?.tracker?.source?.id)
+                trackExternalLinks(domains, profileId, sessionId, config?.tracker?.source?.id)
             }
 
         },
