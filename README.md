@@ -2,6 +2,8 @@
 
 # Web page JS integrations
 
+The most up-to-date documentation is available at: [http://docs.tracardi.com/integration/js/](http://docs.tracardi.com/integration/js/)
+
 ## Connecting the script and configuration
 
 Tracardi comes with Javascript snippet that integrate any webpage with Tracardi. 
@@ -68,7 +70,6 @@ Now we are ready to send events to Tracardi.
 In a separate script define events that you would like to send.
 
 ```javascript
-window.response.context.profile = true;
 window.tracker.track("purchase-order", {"product": "Sun glasses - Badoo", "price": 13.45})
 window.tracker.track("interest", {"Eletronics": ["Mobile phones", "Accessories"]})
 window.tracker.track("page-view",{});
