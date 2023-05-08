@@ -236,3 +236,5 @@ yarn install
 yarn build
 ```
 
+
+It builds loader that loads the script and a script itself. 
