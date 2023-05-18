@@ -123,15 +123,21 @@ export default function tracardiPlugin(options) {
         return eventPayload
     }
 
-    const getEventPayload = async (payload, context) => {
+    const getProfileId = () => {
+        if(config?.tracker?.profile) {
+            return config.tracker.profile
+        }
+        return (profileId != null)
+            ? {id: profileId}
+            : null
+    }
 
+    const getEventPayload = async (payload, context) => {
         let eventPayload = {
             type: payload.event,
             source: config.tracker.source,
             session: {id: sessionId},
-            profile: (profileId != null)
-                ? {id: profileId}
-                : null,
+            profile: getProfileId(),
             context: {
                 time: clientInfo.time(),
             },
