@@ -61,7 +61,7 @@ export default function tracardiPlugin(options) {
                                 // Navigate to the updated URL
                                 window.location.href = updatedHref;
                             });
-                            console.log(`[Tracker] Patched Link: ${link.href}`)
+                            console.log(`[Tracardi] Patched Link: ${link.href}`)
                         }
                     }
                 } catch (error) {
@@ -238,12 +238,12 @@ export default function tracardiPlugin(options) {
     const handleError = (e) => {
         if (e.response) {
             if (typeof e.response.data === 'object') {
-                console.error("[Tracker] " + e.response.data.detail);
+                console.error("[Tracardi] " + e.response.data.detail);
             } else {
-                console.error("[Tracker] " + e.message);
+                console.error("[Tracardi] " + e.message);
             }
         } else {
-            console.error("[Tracker] " + e.message);
+            console.error("[Tracardi] " + e.message);
         }
     }
 
@@ -252,14 +252,18 @@ export default function tracardiPlugin(options) {
 
         try {
 
+            const payload = trackEventList.get(config)
+
+            console.debug("[Tracardi] /track requested:", payload)
             response = await request(
                 {
                     method: "POST",
                     url: config.tracker.url.api + '/track',
-                    data: trackEventList.get(config),
+                    data: payload,
                     asBeacon: false
                 }
             );
+            console.debug("[Tracardi] /track responded:", response)
 
             // If browser profile is the same as context profile then consent displayed
             // Consent is displayed when there is new profile created.
@@ -372,22 +376,22 @@ export default function tracardiPlugin(options) {
             }
 
             if (typeof config.tracker == 'undefined') {
-                console.error("[Tracker] Tracker init stopped because config.tracker is undefined.");
+                console.error("[Tracardi] Tracker init stopped because config.tracker is undefined.");
                 return abort('Cancel the initialize call because of config.tracker.source is undefined.');
             }
 
             if (typeof config.tracker.source === 'undefined') {
-                console.error("[Tracker] Tracker init stopped because config.tracker.source is undefined.");
+                console.error("[Tracardi] Tracker init stopped because config.tracker.source is undefined.");
                 return abort('Cancel the initialize call because of config.tracker.source is undefined.');
             }
 
             if (typeof config.tracker.url === "undefined") {
-                console.error("[Tracker] Tracker init stopped because config.tracker.url is undefined.");
+                console.error("[Tracardi] Tracker init stopped because config.tracker.url is undefined.");
                 return abort('Cancel the initialize call because of config.tracker.url is undefined.');
             }
 
             if (typeof config.tracker.url.api === "undefined") {
-                console.error("[Tracker] Tracker init stopped because config.tracker.url.api is undefined.");
+                console.error("[Tracardi] Tracker init stopped because config.tracker.url.api is undefined.");
                 return abort('Cancel the initialize call because of config.tracker.url.api s undefined.');
             }
 
@@ -460,7 +464,7 @@ export default function tracardiPlugin(options) {
             const domains  = config?.tracker?.settings?.trackExternalLinks
 
             if(domains && Array.isArray(domains) && domains.length > 0) {
-                console.log("[Tracker] External links patched.")
+                console.log("[Tracardi] External links patched.")
                 trackExternalLinks(domains, profileId, sessionId, config?.tracker?.source?.id)
             }
 
@@ -468,14 +472,14 @@ export default function tracardiPlugin(options) {
 
         initialize: ({config}) => {
 
-            console.debug("[Tracker] Plugin init configuration", config)
+            console.debug("[Tracardi] Plugin init configuration", config)
 
             singleApiCall = {
                 tracks: false
             }
 
             if (!hasCookies()) {
-                console.error("[Tracker] Cookies disabled.");
+                console.error("[Tracardi] Cookies disabled.");
                 if (typeof config.listeners.onCookiesDisabled !== "undefined") {
                     const onCookiesDisabled = config.listeners.onCookiesDisabled
 
@@ -531,13 +535,13 @@ export default function tracardiPlugin(options) {
         track: async ({payload, config}) => {
 
             if (typeof config == 'undefined' || typeof config.tracker == 'undefined' || typeof config.tracker.source === 'undefined') {
-                console.error("[Tracker] config.tracker.source undefined.");
+                console.error("[Tracardi] config.tracker.source undefined.");
                 return;
             }
 
-            console.debug("[Tracker] Event track", payload);
-
             const eventPayload = await getEventPayload(payload, config.tracker.context)
+
+            console.debug("[Tracardi] Event track fire", payload?.options?.fire);
 
             let eventContext = {}
             if (typeof config.tracker.context.page === "undefined" || config.tracker.context.page === true) {
@@ -555,14 +559,17 @@ export default function tracardiPlugin(options) {
 
                     immediateTrackEventList.add(event.build(eventPayload), eventContext)
 
+                    const data = immediateTrackEventList.get(config)
+                    console.debug("[Tracardi] /track requested:", data)
                     const response = request(
                         {
                             method: "POST",
                             url: config.tracker.url.api + '/track',
-                            data: immediateTrackEventList.get(config),
+                            data: data,
                             asBeacon: payload?.options?.asBeacon === true
                         },
                     );
+                    console.debug("[Tracardi] /track requested:", response)
                     console.warn("[Tracardi] Tracking with option `fire: true` will not trigger listeners such as onContextReady, onConsentRequired, etc.")
 
                     immediateTrackEventList.reset();
@@ -580,7 +587,7 @@ export default function tracardiPlugin(options) {
             if (!singleApiCall.tracks) {
                 singleApiCall.tracks = true;
 
-                console.debug('[Tracker] TrackEnd');
+                console.debug('[Tracardi] TrackEnd');
 
                 push(config);
             }
