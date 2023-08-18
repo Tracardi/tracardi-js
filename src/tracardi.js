@@ -10,29 +10,43 @@ import {addListener} from "@analytics/listener-utils";
 
 export default function tracardiPlugin(options) {
 
+    const cookieName = 'tracardi-session-id';
+    const cookieExpires = 5;  // 30 min
+    const profileName = 'tracardi-profile-id';
+
+    const getSessionId = () => {
+        // Every time the cookie is fetched its expiration gets prolonged.
+        let sessionId = getCookie(cookieName);
+        if (!sessionId) {
+            sessionId = uuid4();
+            console.warn("Cookie missing or expired", cookieName, sessionId)
+        }
+        setCookie(cookieName, sessionId, cookieExpires, '/')
+        return sessionId
+    }
+
+    const startScriptSessionId = getSessionId()
+    setCookie(cookieName, startScriptSessionId, cookieExpires, '/');
+    console.debug("[Tracardi] Session:", startScriptSessionId)
+
+    const sendTrackPayload = async (payload) => {
+        return await request(payload)
+    }
+
     const clientInfo = ClientInfo();
     const event = Event();
-
-    let isCookieSet = true
     const trackEventList = EventsList({}, window.response);
     const immediateTrackEventList = EventsList({}, window.response);
-    const cookieName = 'tracardi-session-id';
-    const profileName = 'tracardi-profile-id';
     let profileId = getItem(profileName)
-    let sessionId = getCookie(cookieName);
-    if (!sessionId) {
-        sessionId = uuid4();
-        const expires = 0;
-        setCookie(cookieName, sessionId, expires, '/');
-        isCookieSet = false
-    }
     let singleApiCall = {}
 
     const isObject = (a) => {
         return (!!a) && (a.constructor === Object);
     }
 
-    const trackExternalLinks = (domains, profileId, sessionId, sourceId) => {
+
+
+    const trackExternalLinks = (domains, profileId, sourceId) => {
         // Add a click event listener to all anchor tags (links) on the page
         const links = document.getElementsByTagName('a');
         for (let i = 0; i < links.length; i++) {
@@ -61,7 +75,7 @@ export default function tracardiPlugin(options) {
                                 // Navigate to the updated URL
                                 window.location.href = updatedHref;
                             });
-                            console.log(`[Tracardi] Patched Link: ${link.href}`)
+                            console.debug(`[Tracardi] Patched Link: ${link.href}`)
                         }
                     }
                 } catch (error) {
@@ -101,7 +115,7 @@ export default function tracardiPlugin(options) {
                     }
                 } else {
                     try {
-                        const response = await request({
+                        const response = await sendTrackPayload({
                             url: externalConfig?.url,
                             method: externalConfig?.method,
                             body: externalConfig?.body
@@ -114,7 +128,7 @@ export default function tracardiPlugin(options) {
                             }
                         }
                     } catch (e) {
-                        console.log(e)
+                        console.error(e)
                     }
                 }
             }
@@ -136,7 +150,7 @@ export default function tracardiPlugin(options) {
         let eventPayload = {
             type: payload.event,
             source: config.tracker.source,
-            session: {id: sessionId},
+            session: {id: getSessionId()},
             profile: getProfileId(),
             context: {
                 time: clientInfo.time(),
@@ -254,28 +268,35 @@ export default function tracardiPlugin(options) {
 
             const payload = trackEventList.get(config)
 
-            console.debug("[Tracardi] /track requested:", payload)
-            response = await request(
+            console.debug("[Tracardi] Collected page event sent:", payload)
+
+            response = await sendTrackPayload(
                 {
                     method: "POST",
                     url: config.tracker.url.api + '/track',
                     data: payload,
                     asBeacon: false
-                }
+                }, "tra"
             );
-            console.debug("[Tracardi] /track responded:", response)
+
+            console.debug("[Tracardi] Collected page event response:", response)
+
+            if (response.status !== 200) {
+                console.error("[Tracardi] Incorrect response status", response?.status, response?.statusText)
+                console.error("[Tracardi] Tracardi responded", response?.data)
+            }
 
             // If browser profile is the same as context profile then consent displayed
             // Consent is displayed when there is new profile created.
 
             if (typeof response?.data?.profile?.id === "undefined") {
                 console.error("[Tracardi] /track must return profile id. No profile id returned.")
+            } else {
+                // Set profile id
+                profileId = response.data.profile.id
+                setItem(profileName, profileId);
+                setCookie('__tr_pid', profileId, 0, '/')
             }
-
-            // Set profile id
-            profileId = response.data.profile.id
-            setItem(profileName, profileId);
-            setCookie('__tr_pid', profileId, 0, '/')
 
         } catch (e) {
             handleError(e);
@@ -299,7 +320,7 @@ export default function tracardiPlugin(options) {
 
             // Ux
             if (Array.isArray(response?.data?.ux)) {
-                console.log("[Tracardi] UIX found.")
+                console.debug("[Tracardi] UIX found.")
                 response.data.ux.map(tag => {
                         const placeholder = document.createElement(tag.tag);
                         for (let key in tag.props) {
@@ -348,7 +369,9 @@ export default function tracardiPlugin(options) {
                 trackerPayload.options = window.response.context;
                 trackerPayload.events = [event.dynamic(eventPayload, eventContext)];
 
-                const response = await request(
+                console.debug("[Tracardi] Helper /track requested:", trackerPayload)
+
+                const response = await sendTrackPayload(
                     {
                         method: "POST",
                         url: config.tracker.url.api + '/track',
@@ -356,6 +379,8 @@ export default function tracardiPlugin(options) {
                         asBeacon: options?.asBeacon === true
                     }
                 );
+
+                console.debug("[Tracardi] Helper /track response:", response)
 
                 return response
             },
@@ -444,28 +469,13 @@ export default function tracardiPlugin(options) {
                 }
             }
 
-            // if (config?.tracker?.context?.tracardiPass !== true) {
-            //
-            //     const queryString = window.location.search
-            //     const urlParams = new URLSearchParams(queryString)
-            //
-            //     if(urlParams.has('__tr_pid')) {
-            //         profileId = urlParams.get("__tr_pid")
-            //         setItem(profileName, profileId);
-            //         setCookie('__tr_pid', profileId, 0, '/')
-            //     }
-            //
-            //     if(urlParams.has('__tr_sid')) {
-            //         sessionId = urlParams.get("__tr_sid")
-            //         setCookie(cookieName, sessionId, 0, '/');
-            //     }
-            // }
-
             const domains  = config?.tracker?.settings?.trackExternalLinks
 
             if(domains && Array.isArray(domains) && domains.length > 0) {
-                console.log("[Tracardi] External links patched.")
-                trackExternalLinks(domains, profileId, sessionId, config?.tracker?.source?.id)
+                console.debug("[Tracardi] External links patched.")
+                trackExternalLinks(domains,
+                    profileId,
+                    config?.tracker?.source?.id)
             }
 
         },
@@ -497,22 +507,23 @@ export default function tracardiPlugin(options) {
                 return;
             }
 
-            // onSessionSet event
-            if (!isCookieSet && typeof config.listeners.onSessionSet !== "undefined") {
-                const onSessionSet = config.listeners.onSessionSet
-
-                if (typeof onSessionSet !== "function") {
-                    throw new TypeError("onSessionSet must be a function.");
-                }
-
-                onSessionSet({
-                        session: {id: sessionId},
-                        tracker: window.tracardi.default,
-                        helpers: window.tracardi.default.plugins.tracardi
-                    }
-                );
-
-            }
+            // TODO Remove after 2023-10-01
+            // // onSessionSet event
+            // if (!isCookieSet && typeof config.listeners.onSessionSet !== "undefined") {
+            //     const onSessionSet = config.listeners.onSessionSet
+            //
+            //     if (typeof onSessionSet !== "function") {
+            //         throw new TypeError("onSessionSet must be a function.");
+            //     }
+            //
+            //     onSessionSet({
+            //             session: {id: getSessionId()},
+            //             tracker: window.tracardi.default,
+            //             helpers: window.tracardi.default.plugins.tracardi
+            //         }
+            //     );
+            //
+            // }
 
             if (typeof config.listeners.onInit !== "undefined") {
                 const onInit = config.listeners.onInit
@@ -522,7 +533,7 @@ export default function tracardiPlugin(options) {
 
                 onInit(
                     {
-                        session: {id: sessionId},
+                        session: {id: getSessionId()},
                         tracker: window.tracardi.default,
                         helpers: window.tracardi.default.plugins.tracardi
                     }
@@ -541,8 +552,6 @@ export default function tracardiPlugin(options) {
 
             const eventPayload = await getEventPayload(payload, config.tracker.context)
 
-            console.debug("[Tracardi] Event track fire", payload?.options?.fire);
-
             let eventContext = {}
             if (typeof config.tracker.context.page === "undefined" || config.tracker.context.page === true) {
                 eventContext = {
@@ -560,8 +569,14 @@ export default function tracardiPlugin(options) {
                     immediateTrackEventList.add(event.build(eventPayload), eventContext)
 
                     const data = immediateTrackEventList.get(config)
-                    console.debug("[Tracardi] /track requested:", data)
-                    const response = request(
+
+                    if(payload?.options?.asBeacon === true) {
+                        console.debug("[Tracardi] Beacon /track requested (no response):", data)
+                    } else if(payload?.options?.fire) {
+                        console.debug("[Tracardi] Immediate /track requested:", data)
+                    }
+
+                    const response = await sendTrackPayload(
                         {
                             method: "POST",
                             url: config.tracker.url.api + '/track',
@@ -569,8 +584,10 @@ export default function tracardiPlugin(options) {
                             asBeacon: payload?.options?.asBeacon === true
                         },
                     );
-                    console.debug("[Tracardi] /track requested:", response)
-                    console.warn("[Tracardi] Tracking with option `fire: true` will not trigger listeners such as onContextReady, onConsentRequired, etc.")
+                    if(payload?.options?.fire && payload?.options?.asBeacon !== true) {
+                        console.debug("[Tracardi] Immediate /track response:", response)
+                    }
+                    console.warn("[Tracardi] Tracking with option `fire: true` will not trigger listeners such as onTracardiReady, etc.")
 
                     immediateTrackEventList.reset();
                     return response
@@ -583,13 +600,20 @@ export default function tracardiPlugin(options) {
             }
         },
 
-        trackEnd: ({config}) => {
+        trackEnd: async ({config}) => {
             if (!singleApiCall.tracks) {
                 singleApiCall.tracks = true;
 
-                console.debug('[Tracardi] TrackEnd');
+                await push(config)
 
-                push(config);
+                console.debug('[Tracardi] TrackEnd');
+                const endScriptSessionId = getCookie(cookieName)
+                // This code fixes the error in FireFox that recreates session, god knows why.
+                if(startScriptSessionId !== endScriptSessionId) {
+                    console.error('[Tracardi] Tracker did not end with the same session.', startScriptSessionId, endScriptSessionId);
+                    setCookie(cookieName, startScriptSessionId, cookieExpires, "/")
+                }
+                console.log(getCookie(cookieName))
             }
         },
 

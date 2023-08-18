@@ -20,7 +20,7 @@ export default function EventsList(container, profile) {
                 }
                 container.events.push(eventObject.dynamic(payload, eventContext));
             } else {
-                console.error("[Trackardi] Missing container in EventsList.")
+                console.error("[Tracardi] Missing container in EventsList.")
             }
 
         },

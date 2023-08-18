@@ -114,14 +114,14 @@ window.onTracardiReady = {
     }
 
     function callback(e) {
-        console.debug("[Tracker] Rerun callbacks.")
+        console.debug("[Loader] Rerun callbacks.")
         // Now window.tracardi.default is present
         if(typeof window.tracardi.default === 'undefined') {
-            console.error("[Tracardi] Callbacks stopped. Tracker not initialized. Is script url correct?");
+            console.error("[Loader] Callbacks stopped. Tracker not initialized. Is script url correct?");
             return;
         }
         if(!window.tracardi.default.getState().plugins['tracardi'].initialized) {
-            console.error("[Tracardi] Callbacks stopped. Tracker not initialized.");
+            console.error("[Loader] Callbacks stopped. Tracker not initialized.");
             return;
         }
         window.tracker = window.tracardi.default
@@ -148,7 +148,7 @@ window.onTracardiReady = {
         if(typeof options.tracker === "undefined" &&
             typeof options.tracker.url === "undefined" &&
             typeof options.tracker.url.script === "undefined") {
-            console.error("[Tracker] Undefined options.tracker.url.script. This url defines location of tracker code.");
+            console.error("[Loader] Undefined options.tracker.url.script. This url defines location of tracker code.");
             return;
         }
 
@@ -161,7 +161,7 @@ window.onTracardiReady = {
         } else {
             script.src = tracker_path;
         }
-        console.debug("[Tracker] Loading: " + script.src);
+        console.debug("[Loader] Loading: " + script.src);
 
         if (script.addEventListener) {
             script.addEventListener('load', function (e) {
