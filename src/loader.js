@@ -134,6 +134,38 @@ window.onTracardiReady = {
         }
     }
 
+    function getGPU() {
+
+        const canvas = document.createElement('canvas');
+        let gl;
+        let renderer = null;
+        let vendor = null;
+
+        try {
+            gl = canvas.getContext('webgl', { powerPreference: "high-performance" }) || canvas.getContext('experimental-webgl', { powerPreference: "high-performance" });
+            if (gl) {
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                if(debugInfo) {
+                    vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                    if (navigator.userAgent.includes("Firefox")) {
+                        renderer = gl.getParameter(gl.RENDERER);
+                    } else {
+                        renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                    }
+
+                    return {
+                        vendor: {id: debugInfo.UNMASKED_VENDOR_WEBGL, name: vendor},
+                        renderer: {id: debugInfo.UNMASKED_RENDERER_WEBGL, renderer: renderer}
+                    }
+                }
+            }
+        } catch (e) {
+        }
+
+        return null
+
+    }
+
     documentReady(function () {
 
         if(navigator.doNotTrack === '1' && options?.tracker?.settings?.respectDoNotTrack === true) {
@@ -144,6 +176,9 @@ window.onTracardiReady = {
         let script = document.createElement('script');
         script.type = 'text/javascript';
         script.async = true;
+
+        // Device context
+        options.context = {gpu: getGPU()}
 
         if(typeof options.tracker === "undefined" &&
             typeof options.tracker.url === "undefined" &&

@@ -11,7 +11,7 @@ import {addListener} from "@analytics/listener-utils";
 export default function tracardiPlugin(options) {
 
     const cookieName = 'tracardi-session-id';
-    const cookieExpires = 5;  // 30 min
+    const cookieExpires = 30*60;  // 30 min
     const profileName = 'tracardi-profile-id';
 
     const getSessionId = () => {
@@ -146,7 +146,10 @@ export default function tracardiPlugin(options) {
             : null
     }
 
-    const getEventPayload = async (payload, context) => {
+    const getEventPayload = async (payload, config) => {
+        const context = config.tracker.context
+        const deviceContext = config?.context
+
         let eventPayload = {
             type: payload.event,
             source: config.tracker.source,
@@ -156,6 +159,10 @@ export default function tracardiPlugin(options) {
                 time: clientInfo.time(),
             },
             properties: payload.properties,
+        }
+
+        if(deviceContext) {
+            eventPayload.context.device= deviceContext
         }
 
         if (typeof context.browser === "undefined" || context?.browser === true) {
@@ -189,8 +196,7 @@ export default function tracardiPlugin(options) {
         if(context?.location) {
             const geo = getCookie('__tr_geo')
             try {
-                const location = JSON.parse(geo)
-                eventPayload.context.location = location
+                eventPayload.context.location = JSON.parse(geo)
             } catch (e) {
                 removeCookie('__tr_geo')
             }
@@ -231,14 +237,13 @@ export default function tracardiPlugin(options) {
                 urlParams.has('utm_content')
 
             if (hasUtm) {
-                const utm = {
+                eventPayload.context.utm = {
                     ...(urlParams.has('utm_source')) && {source: urlParams.get("utm_source")},
                     ...(urlParams.has('utm_medium')) && {medium: urlParams.get("utm_medium")},
                     ...(urlParams.has('utm_campaign')) && {campaign: urlParams.get("utm_campaign")},
                     ...(urlParams.has('utm_term')) && {term: urlParams.get("utm_term")},
                     ...(urlParams.has('utm_content')) && {content: urlParams.get("utm_content")},
                 }
-                eventPayload.context.utm = utm
             }
         }
 
@@ -363,7 +368,7 @@ export default function tracardiPlugin(options) {
                     properties: (payload) ? payload : {}
                 }
 
-                const eventPayload = await getEventPayload(payload, config.tracker.context);
+                const eventPayload = await getEventPayload(payload, config);
 
                 let trackerPayload = event.static(eventPayload);
                 trackerPayload.options = window.response.context;
@@ -550,7 +555,7 @@ export default function tracardiPlugin(options) {
                 return;
             }
 
-            const eventPayload = await getEventPayload(payload, config.tracker.context)
+            const eventPayload = await getEventPayload(payload, config)
 
             let eventContext = {}
             if (typeof config.tracker.context.page === "undefined" || config.tracker.context.page === true) {
@@ -613,7 +618,6 @@ export default function tracardiPlugin(options) {
                     console.error('[Tracardi] Tracker did not end with the same session.', startScriptSessionId, endScriptSessionId);
                     setCookie(cookieName, startScriptSessionId, cookieExpires, "/")
                 }
-                console.log(getCookie(cookieName))
             }
         },
 
