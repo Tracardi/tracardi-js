@@ -12,7 +12,6 @@ export default function tracardiPlugin(options) {
 
     const cookieName = 'tracardi-session-id';
     const profileName = 'tracardi-profile-id';
-    const deviceIdKey = 'tracardi-device-id';
     const cookieExpires = 30*60;  // 30 min
 
     const getSessionId = () => {
@@ -24,15 +23,6 @@ export default function tracardiPlugin(options) {
         }
         setCookie(cookieName, sessionId, cookieExpires, '/')
         return sessionId
-    }
-
-    const getDeviceId = () => {
-        let deviceId = getItem(deviceIdKey);
-        if (!deviceId) {
-            deviceId = uuid4();
-            setItem(deviceIdKey, deviceId)
-        }
-        return deviceId
     }
 
     const startScriptSessionId = getSessionId()
@@ -164,7 +154,6 @@ export default function tracardiPlugin(options) {
             type: payload.event,
             source: config.tracker.source,
             session: {id: getSessionId()},
-            device: {id: getDeviceId()},
             profile: getProfileId(),
             context: {
                 time: clientInfo.time(),

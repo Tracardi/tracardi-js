@@ -69,7 +69,7 @@
         });
         window.tracker.track("test", {"product": "Sun glasses - Badoo", "price": 13.45})
         window.tracker.track("profile-interest", {"Vacation": 1})
-        window.tracker.track("page-view", {"basket": 1}, {"fire": true});
+        window.tracker.track("page-view", {"basket": 1}, {"fire": true, "wfr": true, async: false});
         window.tracker.track("beacon", {"basket": 1}, {"fire": true, asBeacon: true});
         window.tracker.track("personal-data", {
             "name": Math.random(),
