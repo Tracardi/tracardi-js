@@ -11,8 +11,9 @@ import {addListener} from "@analytics/listener-utils";
 export default function tracardiPlugin(options) {
 
     const cookieName = 'tracardi-session-id';
-    const cookieExpires = 30*60;  // 30 min
     const profileName = 'tracardi-profile-id';
+    const deviceIdKey = 'tracardi-device-id';
+    const cookieExpires = 30*60;  // 30 min
 
     const getSessionId = () => {
         // Every time the cookie is fetched its expiration gets prolonged.
@@ -23,6 +24,15 @@ export default function tracardiPlugin(options) {
         }
         setCookie(cookieName, sessionId, cookieExpires, '/')
         return sessionId
+    }
+
+    const getDeviceId = () => {
+        let deviceId = getItem(deviceIdKey);
+        if (!deviceId) {
+            deviceId = uuid4();
+            setItem(deviceIdKey, deviceId)
+        }
+        return deviceId
     }
 
     const startScriptSessionId = getSessionId()
@@ -154,6 +164,7 @@ export default function tracardiPlugin(options) {
             type: payload.event,
             source: config.tracker.source,
             session: {id: getSessionId()},
+            device: {id: getDeviceId()},
             profile: getProfileId(),
             context: {
                 time: clientInfo.time(),
@@ -511,24 +522,6 @@ export default function tracardiPlugin(options) {
                 }
                 return;
             }
-
-            // TODO Remove after 2023-10-01
-            // // onSessionSet event
-            // if (!isCookieSet && typeof config.listeners.onSessionSet !== "undefined") {
-            //     const onSessionSet = config.listeners.onSessionSet
-            //
-            //     if (typeof onSessionSet !== "function") {
-            //         throw new TypeError("onSessionSet must be a function.");
-            //     }
-            //
-            //     onSessionSet({
-            //             session: {id: getSessionId()},
-            //             tracker: window.tracardi.default,
-            //             helpers: window.tracardi.default.plugins.tracardi
-            //         }
-            //     );
-            //
-            // }
 
             if (typeof config.listeners.onInit !== "undefined") {
                 const onInit = config.listeners.onInit
