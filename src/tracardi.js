@@ -37,6 +37,7 @@ export default function tracardiPlugin(options) {
     const event = Event();
     const trackEventList = EventsList({}, window.response);
     const immediateTrackEventList = EventsList({}, window.response);
+    const beaconTrackEventList = EventsList({}, window.response);
     let profileId = getItem(profileName)
     let singleApiCall = {}
 
@@ -281,8 +282,10 @@ export default function tracardiPlugin(options) {
                     url: config.tracker.url.api + '/track',
                     data: payload,
                     asBeacon: false
-                }, "tra"
+                }
             );
+
+            trackEventList.reset();
 
             console.debug("[Tracardi] Collected page event response:", response)
 
@@ -341,7 +344,7 @@ export default function tracardiPlugin(options) {
 
         });
 
-        trackEventList.reset();
+
 
     }
 
@@ -549,34 +552,51 @@ export default function tracardiPlugin(options) {
             if (!isEmptyObjectOrNull(payload?.options?.context)) {
                 eventContext = {...eventContext, ...payload?.options?.context}
             }
+            if (payload?.options?.asBeacon === true) {
 
-            if (payload?.options?.fire === true) {
+                console.debug("[Tracardi] Beacon /track requested (no response):", data)
+                beaconTrackEventList.add(event.build(eventPayload), eventContext)
+                const data = beaconTrackEventList.get(config)
+
+                const response = await sendTrackPayload(
+                    {
+                        method: "POST",
+                        url: config.tracker.url.api + '/track',
+                        data: data,
+                        asBeacon: true
+                    },
+                );
+
+                beaconTrackEventList.reset();
+
+                console.debug("[Tracardi] Beacon /track response:", response)
+
+                return response
+
+            } else if (payload?.options?.fire === true) {
                 try {
 
                     immediateTrackEventList.add(event.build(eventPayload), eventContext)
 
                     const data = immediateTrackEventList.get(config)
 
-                    if(payload?.options?.asBeacon === true) {
-                        console.debug("[Tracardi] Beacon /track requested (no response):", data)
-                    } else if(payload?.options?.fire) {
-                        console.debug("[Tracardi] Immediate /track requested:", data)
-                    }
+                    console.debug("[Tracardi] Immediate /track requested:", data)
 
                     const response = await sendTrackPayload(
                         {
                             method: "POST",
                             url: config.tracker.url.api + '/track',
                             data: data,
-                            asBeacon: payload?.options?.asBeacon === true
+                            asBeacon: false
                         },
                     );
-                    if(payload?.options?.fire && payload?.options?.asBeacon !== true) {
-                        console.debug("[Tracardi] Immediate /track response:", response)
-                    }
-                    console.warn("[Tracardi] Tracking with option `fire: true` will not trigger listeners such as onTracardiReady, etc.")
 
                     immediateTrackEventList.reset();
+
+                    console.debug("[Tracardi] Immediate /track response:", response)
+                    console.warn("[Tracardi] Tracking with option `fire: true` will not trigger listeners such as onTracardiReady, etc.")
+
+
                     return response
 
                 } catch (e) {
