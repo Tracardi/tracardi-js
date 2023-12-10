@@ -3,10 +3,13 @@ import {v4 as uuid4} from 'uuid';
 import Event from './domain/event';
 import ClientInfo from './domain/clientInfo';
 import EventsList from './domain/eventsList';
+import {toUTCISOStringWithMilliseconds} from './utils/date';
 import {getItem, removeItem, setItem} from "@analytics/storage-utils";
 import {request} from "./apiCall";
 import {addListener} from "@analytics/listener-utils";
 // import {getLCP, getFID, getCLS} from 'web-vitals';
+
+
 
 export default function tracardiPlugin(options) {
 
@@ -151,7 +154,12 @@ export default function tracardiPlugin(options) {
         const context = config.tracker.context
         const deviceContext = config?.context
 
+        const now = new Date();
+
         let eventPayload = {
+            time: {
+              create: toUTCISOStringWithMilliseconds(now)
+            },
             type: payload.event,
             source: config.tracker.source,
             session: {id: getSessionId()},
@@ -541,7 +549,7 @@ export default function tracardiPlugin(options) {
             }
 
             const eventPayload = await getEventPayload(payload, config)
-
+            console.log(eventPayload)
             let eventContext = {}
             if (typeof config.tracker.context.page === "undefined" || config.tracker.context.page === true) {
                 eventContext = {

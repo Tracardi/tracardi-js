@@ -1,3 +1,5 @@
+import {toUTCISOStringWithMilliseconds} from '../utils/date';
+
 export default function ClientInfo() {
 
     const getReferer = () => {
@@ -69,7 +71,7 @@ export default function ClientInfo() {
 
         time: () => {
             return {
-                local: new Date().toLocaleString(),
+                local: toUTCISOStringWithMilliseconds(new Date()),
                 tz: Intl.DateTimeFormat().resolvedOptions().timeZone
             }
         },

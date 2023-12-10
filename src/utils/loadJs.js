@@ -1,5 +1,5 @@
 export default function loadJS(tag, url, main){
-    console.log(tag)
+
     const scriptTag = document.createElement(tag);
     scriptTag.src = url;
 

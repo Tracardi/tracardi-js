@@ -13,8 +13,9 @@ const getDeviceId = () => {
 
 export default function Event() {
     return {
-        build: ({type, source, session, profile, context, properties, options}) => {
+        build: ({time, type, source, session, profile, context, properties, options}) => {
             return {
+                time: time,
                 type: type,
                 session: session,
                 device: {id: getDeviceId()},
@@ -27,6 +28,7 @@ export default function Event() {
         },
         dynamic: (data, eventContext) => {
             return {
+                time: data.time,
                 properties: data.properties,
                 type: data.type,
                 options: data.options,
@@ -34,6 +36,7 @@ export default function Event() {
             }
         },
         static: (payload) => {
+            // This is tracker setup
             return {
                 metadata: payload.metadata,
                 source: payload.source,
