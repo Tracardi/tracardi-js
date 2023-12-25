@@ -79,6 +79,11 @@ export default function tracardiPlugin(options) {
                                 // Navigate to the updated URL
                                 window.location.href = updatedHref;
                             });
+
+                            // const parameter = `__tr_pid=${profileId.trim()}&__tr_src=${sourceId.trim()}`;
+                            // const updatedHref = link.href + (link.href.indexOf('?') === -1 ? '?' : '&') + parameter;
+                            // link.href = updatedHref
+
                             console.debug(`[Tracardi] Patched Link: ${link.href}`)
                         }
                     }
