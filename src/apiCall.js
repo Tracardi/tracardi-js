@@ -23,7 +23,7 @@ export async function request({url, header, method, data, asBeacon=false}) {
             method: method,
             headers: header,
             body: JSON.stringify(data),
-            credentials: 'omit'
+            credentials: 'include'  // default - omit
         }
 
         if (data) {

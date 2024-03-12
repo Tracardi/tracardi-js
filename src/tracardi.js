@@ -48,6 +48,124 @@ export default function tracardiPlugin(options) {
         return (!!a) && (a.constructor === Object);
     }
 
+    async function TriggerEventTrack(eventPayload, eventContext) {
+
+        immediateTrackEventList.add(event.build(eventPayload), eventContext)
+
+        const data = immediateTrackEventList.get(config)
+
+        console.debug("[Tracardi] Immediate /track requested:", data)
+
+        const response = await sendTrackPayload(
+            {
+                method: "POST",
+                url: config.tracker.url.api + '/track',
+                data: data,
+                asBeacon: false
+            },
+        );
+
+        immediateTrackEventList.reset();
+
+        return response
+    }
+
+    async function onTrigger(element) {
+        console.log(`Element (${element.id}) is now visible on the screen.`);
+        // Access the custom data directly from the element
+        console.log("Custom Data:", element.customData);
+
+        const payload = element.customData.payload
+        const config = element.customData.config
+        console.log(payload)
+        console.log(config)
+        const eventPayload = await getEventPayload(payload, config)
+        const eventContext = getEventContext(config, payload)
+
+        console.log(eventPayload)
+        console.log(eventContext)
+
+        await TriggerEventTrack(eventPayload, eventContext)
+    }
+
+    const observer = new IntersectionObserver(async (entries, observer) => {
+        entries.forEach(entry => {
+            if(entry.isIntersecting){
+                (async (entry) => {
+                    // The observed element is available as entry.target
+                    // Run your async function with the element
+                    await onTrigger(entry.target);
+
+                    // Optional: Unobserve the element
+                    observer.unobserve(entry.target);
+                })(entry);
+            }
+        });
+    }, { threshold: 0.1 });
+
+    // Function to observe an element with custom data
+    function observeWithCustomData(element, customProperties) {
+        // Attach custom data directly to the element
+        element.customData = customProperties;
+        // Start observing the element
+        observer.observe(element);
+    }
+
+    function getSelectedText() {
+        if (window.getSelection) {
+            return window.getSelection().toString();
+        } else if (document.selection && document?.selection?.type !== "Control") {
+            return document.selection.createRange().text;
+        }
+        return '';
+    }
+
+    function bindOnMouseOver(element, customProperties) {
+        element.addEventListener('mouseover', async (e) => {
+            // Function to get the selected text
+            const selectedText = getSelectedText();
+            if (selectedText) {
+                const properties = {...customProperties}
+                if (!properties?.payload?.properties) {
+                    properties.payload.properties = {}
+                }
+                properties.payload.properties.text = selectedText
+                element.customData = properties
+                await onTrigger(element);
+            }
+        });
+    }
+
+
+    function bindOnTextSelect(element, customProperties) {
+        element.addEventListener('mouseup', async (e) => {
+            // Function to get the selected text
+            const selectedText = getSelectedText();
+            if (selectedText) {
+                const properties = {...customProperties}
+                if(!properties?.payload?.properties) {
+                    properties.payload.properties = {}
+                }
+                properties.payload.properties.text = selectedText
+                element.customData = properties
+                await onTrigger(element);
+            }
+        });
+
+        // Optional: Consider touch devices
+        element.addEventListener('touchend', async (e) => {
+            const selectedText = getSelectedText();
+            if (selectedText) {
+                const properties = {...customProperties}
+                if(!properties?.payload?.properties) {
+                    properties.payload.properties = {}
+                }
+                properties.payload.properties.text = selectedText
+                element.customData = properties
+                await onTrigger(element);
+            }
+        });
+    }
 
 
     const trackExternalLinks = (domains, profileId, sourceId) => {
@@ -155,6 +273,21 @@ export default function tracardiPlugin(options) {
             : null
     }
 
+    const getEventContext = (config, payload=null) => {
+        let eventContext = {}
+        if (typeof config.tracker.context.page === "undefined" || config.tracker.context.page === true) {
+            eventContext = {
+                page: clientInfo.page()
+            }
+        }
+
+        if (!isEmptyObjectOrNull(payload?.options?.context)) {
+            eventContext = {...eventContext, ...payload?.options?.context}
+        }
+
+        return eventContext
+    }
+
     const getEventPayload = async (payload, config) => {
         const context = config.tracker.context
         const deviceContext = config?.context
@@ -190,6 +323,13 @@ export default function tracardiPlugin(options) {
             eventPayload.context.screen = {
                 ...eventPayload.context.screen,
                 local: clientInfo.screen()
+            }
+        }
+
+        let googleAnalyticsId = getCookie('_ga');
+        if (googleAnalyticsId) {
+            eventPayload.context.ids = {
+                ga: googleAnalyticsId
             }
         }
 
@@ -315,8 +455,14 @@ export default function tracardiPlugin(options) {
             } else {
                 // Set profile id
                 profileId = response.data.profile.id
-                setItem(profileName, profileId);
-                setCookie('__tr_pid', profileId, 0, '/')
+                if(!getItem(profileName)) {
+                    setItem(profileName, profileId);
+                    setItem('__tr_pid', profileId);
+                    setCookie('__tr_pid', profileId, 0, '/')
+                } else {
+                    setItem("__tr_id", profileId);
+                    setCookie('__tr_id', profileId, 0, '/')
+                }
             }
 
         } catch (e) {
@@ -372,12 +518,14 @@ export default function tracardiPlugin(options) {
         methods: {
 
             track: async (eventType, payload, options) => {
-                let eventContext = {}
-                if (config?.tracker?.context?.page === true) {
-                    eventContext = {
-                        page: clientInfo.page()
-                    }
-                }
+                const eventContext = getEventContext(config, payload)
+
+                // let eventContext = {}
+                // if (config?.tracker?.context?.page === true) {
+                //     eventContext = {
+                //         page: clientInfo.page()
+                //     }
+                // }
 
                 payload = {
                     event: eventType,
@@ -499,6 +647,24 @@ export default function tracardiPlugin(options) {
                     config?.tracker?.source?.id)
             }
 
+            if(config?.tracker?.auto?.triggers) {
+                let elements
+                for (const trigger of config?.tracker?.auto?.triggers) {
+                    if(trigger?.trigger === 'onVisible') {
+                        elements = document.querySelectorAll(`[data-tracardi-tag="${trigger.tag}"]`);
+                        elements.forEach(element => observeWithCustomData(
+                            element, {config, payload: trigger.data}
+                            ));
+                    } else if(trigger?.trigger === 'onTextSelect') {
+                        elements = document.querySelectorAll(`[data-tracardi-tag="${trigger.tag}"]`);
+                        elements.forEach(element => bindOnTextSelect(element, {config, payload: trigger.data}));
+                    } else if(trigger?.trigger === 'onMouseOver') {
+                        elements = document.querySelectorAll(`[data-tracardi-tag="${trigger.tag}"]`);
+                        elements.forEach(element => bindOnMouseOver(element, {config, payload: trigger.data}));
+                    }
+                }
+            }
+
         },
 
         initialize: ({config}) => {
@@ -554,17 +720,8 @@ export default function tracardiPlugin(options) {
             }
 
             const eventPayload = await getEventPayload(payload, config)
-            console.log(eventPayload)
-            let eventContext = {}
-            if (typeof config.tracker.context.page === "undefined" || config.tracker.context.page === true) {
-                eventContext = {
-                    page: clientInfo.page()
-                }
-            }
+            const eventContext = getEventContext(config, payload)
 
-            if (!isEmptyObjectOrNull(payload?.options?.context)) {
-                eventContext = {...eventContext, ...payload?.options?.context}
-            }
             if (payload?.options?.asBeacon === true) {
 
                 console.debug("[Tracardi] Beacon /track requested (no response):", data)
@@ -588,26 +745,26 @@ export default function tracardiPlugin(options) {
 
             } else if (payload?.options?.fire === true) {
                 try {
-
-                    immediateTrackEventList.add(event.build(eventPayload), eventContext)
-
-                    const data = immediateTrackEventList.get(config)
-
-                    console.debug("[Tracardi] Immediate /track requested:", data)
-
-                    const response = await sendTrackPayload(
-                        {
-                            method: "POST",
-                            url: config.tracker.url.api + '/track',
-                            data: data,
-                            asBeacon: false
-                        },
-                    );
-
-                    immediateTrackEventList.reset();
-
-                    console.debug("[Tracardi] Immediate /track response:", response)
-                    console.warn("[Tracardi] Tracking with option `fire: true` will not trigger listeners such as onTracardiReady, etc.")
+                    const response = await TriggerEventTrack(eventPayload, eventContext)
+                    // immediateTrackEventList.add(event.build(eventPayload), eventContext)
+                    //
+                    // const data = immediateTrackEventList.get(config)
+                    //
+                    // console.debug("[Tracardi] Immediate /track requested:", data)
+                    //
+                    // const response = await sendTrackPayload(
+                    //     {
+                    //         method: "POST",
+                    //         url: config.tracker.url.api + '/track',
+                    //         data: data,
+                    //         asBeacon: false
+                    //     },
+                    // );
+                    //
+                    // immediateTrackEventList.reset();
+                    //
+                    // console.debug("[Tracardi] Immediate /track response:", response)
+                    // console.warn("[Tracardi] Tracking with option `fire: true` will not trigger listeners such as onTracardiReady, etc.")
 
 
                     return response
@@ -623,6 +780,22 @@ export default function tracardiPlugin(options) {
         trackEnd: async ({config}) => {
             if (!singleApiCall.tracks) {
                 singleApiCall.tracks = true;
+
+                if(config?.tracker?.auto?.events) {
+                    const autoEvents = config?.tracker?.auto?.events
+
+                    if (autoEvents) {
+                        let eventPayload;
+                        for (const [eventType, eventProperties] of autoEvents) {
+                            eventPayload = await getEventPayload({
+                                event: eventType,
+                                properties: eventProperties
+                            }, config)
+                            const eventContext = getEventContext(config)
+                            trackEventList.add(event.build(eventPayload), eventContext);
+                        }
+                    }
+                }
 
                 await push(config)
 

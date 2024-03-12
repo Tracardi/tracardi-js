@@ -1,4 +1,5 @@
 import Event from './event';
+import {getCookie} from "@analytics/cookie-utils";
 
 export default function EventsList(container, profile) {
 
@@ -38,6 +39,17 @@ export default function EventsList(container, profile) {
                         return event
                     })
                 }
+            }
+
+            let googleAnalyticsId = getCookie('_ga');
+            if (googleAnalyticsId) {
+                container.events = container.events.map(event => {
+                    event.context = {
+                        ...event.context,
+                        ga: googleAnalyticsId
+                    }
+                    return event
+                })
             }
 
             return container;
