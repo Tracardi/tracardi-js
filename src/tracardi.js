@@ -745,7 +745,7 @@ export default function tracardiPlugin(options) {
 
             } else if (payload?.options?.fire === true) {
                 try {
-                    const response = await TriggerEventTrack(eventPayload, eventContext)
+                    return await TriggerEventTrack(eventPayload, eventContext)
                     // immediateTrackEventList.add(event.build(eventPayload), eventContext)
                     //
                     // const data = immediateTrackEventList.get(config)
@@ -766,9 +766,6 @@ export default function tracardiPlugin(options) {
                     // console.debug("[Tracardi] Immediate /track response:", response)
                     // console.warn("[Tracardi] Tracking with option `fire: true` will not trigger listeners such as onTracardiReady, etc.")
 
-
-                    return response
-
                 } catch (e) {
                     handleError(e);
                 }
@@ -780,20 +777,16 @@ export default function tracardiPlugin(options) {
         trackEnd: async ({config}) => {
             if (!singleApiCall.tracks) {
                 singleApiCall.tracks = true;
-
-                if(config?.tracker?.auto?.events) {
-                    const autoEvents = config?.tracker?.auto?.events
-
-                    if (autoEvents) {
-                        let eventPayload;
-                        for (const [eventType, eventProperties] of autoEvents) {
-                            eventPayload = await getEventPayload({
-                                event: eventType,
-                                properties: eventProperties
-                            }, config)
-                            const eventContext = getEventContext(config)
-                            trackEventList.add(event.build(eventPayload), eventContext);
-                        }
+                const autoEvents = config?.tracker?.auto?.events
+                if (autoEvents) {
+                    let eventPayload;
+                    for (const [eventType, eventProperties] of autoEvents) {
+                        eventPayload = await getEventPayload({
+                            event: eventType,
+                            properties: eventProperties
+                        }, config)
+                        const eventContext = getEventContext(config)
+                        trackEventList.add(event.build(eventPayload), eventContext);
                     }
                 }
 
