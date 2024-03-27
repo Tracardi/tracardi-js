@@ -48,6 +48,23 @@ export default function tracardiPlugin(options) {
         return (!!a) && (a.constructor === Object);
     }
 
+    function injectUX(ux) {
+        if (Array.isArray(ux) && ux.length>0) {
+            console.debug("[Tracardi] UIX found.")
+            ux.map(tag => {
+                    const placeholder = document.createElement(tag.tag);
+                    for (let key in tag.props) {
+                        placeholder.setAttribute(key, tag.props[key]);
+                    }
+                    if(tag.content) {
+                        placeholder.text = tag.content
+                    }
+                    document.body.appendChild(placeholder);
+                }
+            )
+        }
+    }
+
     async function TriggerEventTrack(eventPayload, eventContext) {
 
         immediateTrackEventList.add(event.build(eventPayload), eventContext)
@@ -64,7 +81,7 @@ export default function tracardiPlugin(options) {
                 asBeacon: false
             },
         );
-
+        injectUX(response?.data?.ux)
         immediateTrackEventList.reset();
 
         return response
@@ -486,20 +503,7 @@ export default function tracardiPlugin(options) {
             }
 
             // Ux
-            if (Array.isArray(response?.data?.ux)) {
-                console.debug("[Tracardi] UIX found.")
-                response.data.ux.map(tag => {
-                        const placeholder = document.createElement(tag.tag);
-                        for (let key in tag.props) {
-                            placeholder.setAttribute(key, tag.props[key]);
-                        }
-                        if(tag.content) {
-                            placeholder.text = tag.content
-                        }
-                        document.body.appendChild(placeholder);
-                    }
-                )
-            }
+            injectUX(response?.data?.ux)
 
         });
 
@@ -520,16 +524,10 @@ export default function tracardiPlugin(options) {
             track: async (eventType, payload, options) => {
                 const eventContext = getEventContext(config, payload)
 
-                // let eventContext = {}
-                // if (config?.tracker?.context?.page === true) {
-                //     eventContext = {
-                //         page: clientInfo.page()
-                //     }
-                // }
-
                 payload = {
                     event: eventType,
-                    properties: (payload) ? payload : {}
+                    properties: (payload) ? payload : {},
+                    options: options
                 }
 
                 const eventPayload = await getEventPayload(payload, config);
@@ -540,6 +538,8 @@ export default function tracardiPlugin(options) {
 
                 console.debug("[Tracardi] Helper /track requested:", trackerPayload)
 
+                console.log(trackerPayload)
+
                 const response = await sendTrackPayload(
                     {
                         method: "POST",
@@ -548,6 +548,8 @@ export default function tracardiPlugin(options) {
                         asBeacon: options?.asBeacon === true
                     }
                 );
+
+                injectUX(response?.data?.ux)
 
                 console.debug("[Tracardi] Helper /track response:", response)
 
@@ -746,26 +748,6 @@ export default function tracardiPlugin(options) {
             } else if (payload?.options?.fire === true) {
                 try {
                     return await TriggerEventTrack(eventPayload, eventContext)
-                    // immediateTrackEventList.add(event.build(eventPayload), eventContext)
-                    //
-                    // const data = immediateTrackEventList.get(config)
-                    //
-                    // console.debug("[Tracardi] Immediate /track requested:", data)
-                    //
-                    // const response = await sendTrackPayload(
-                    //     {
-                    //         method: "POST",
-                    //         url: config.tracker.url.api + '/track',
-                    //         data: data,
-                    //         asBeacon: false
-                    //     },
-                    // );
-                    //
-                    // immediateTrackEventList.reset();
-                    //
-                    // console.debug("[Tracardi] Immediate /track response:", response)
-                    // console.warn("[Tracardi] Tracking with option `fire: true` will not trigger listeners such as onTracardiReady, etc.")
-
                 } catch (e) {
                     handleError(e);
                 }

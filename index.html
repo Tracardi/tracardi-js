@@ -126,7 +126,7 @@
                     id: "demo-website"
                 },
                 context: {
-                    page: false,
+                    page: true,
                     browser: false,
                     screen: false
                 },
@@ -181,7 +181,7 @@
             btn0.style.color = "white";
 
             helpers.addListener(btn0, 'click', async () => {
-                const response = await helpers.track("context", {"page": "hello"});
+                const response = await helpers.track("context", {"page": "hello"}, {async: false});
             });
         });
         window.tracker.track("test", {"product": "Sun glasses - Badoo", "price": 13.45})
@@ -208,7 +208,7 @@
     </script>
     <script>
         function testClick() {
-            window.tracker.track("test-click", {"basket": 1}, {fire: true, asBeacon: true});
+            window.tracker.track("test-click", {"basket": 1}, {fire: true, async: false});
         }
     </script>
 
