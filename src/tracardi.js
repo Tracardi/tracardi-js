@@ -94,13 +94,9 @@ export default function tracardiPlugin(options) {
 
         const payload = element.customData.payload
         const config = element.customData.config
-        console.log(payload)
-        console.log(config)
+
         const eventPayload = await getEventPayload(payload, config)
         const eventContext = getEventContext(config, payload)
-
-        console.log(eventPayload)
-        console.log(eventContext)
 
         await TriggerEventTrack(eventPayload, eventContext)
     }
@@ -527,7 +523,7 @@ export default function tracardiPlugin(options) {
                 payload = {
                     event: eventType,
                     properties: (payload) ? payload : {},
-                    options: options
+                    options: {...options, fire: true}
                 }
 
                 const eventPayload = await getEventPayload(payload, config);
