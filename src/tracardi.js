@@ -1,4 +1,4 @@
-import {getCookie, setCookie, hasCookies, removeCookie} from '@analytics/cookie-utils';
+import {getCookie, setCookie, hasCookies, removeCookie} from './cookies';
 import {v4 as uuid4} from 'uuid';
 import Event from './domain/event';
 import ClientInfo from './domain/clientInfo';
@@ -8,8 +8,6 @@ import {getItem, removeItem, setItem} from "@analytics/storage-utils";
 import {request} from "./apiCall";
 import {addListener} from "@analytics/listener-utils";
 // import {getLCP, getFID, getCLS} from 'web-vitals';
-
-
 
 export default function tracardiPlugin(options) {
 
@@ -277,7 +275,7 @@ export default function tracardiPlugin(options) {
         return eventPayload
     }
 
-    const getProfileId = () => {
+    const getProfileId = (config) => {
         if(config?.tracker?.profile) {
             return config.tracker.profile
         }
@@ -314,7 +312,7 @@ export default function tracardiPlugin(options) {
             type: payload.event,
             source: config.tracker.source,
             session: {id: getSessionId()},
-            profile: getProfileId(),
+            profile: getProfileId(config),
             context: {
                 time: clientInfo.time(),
             },

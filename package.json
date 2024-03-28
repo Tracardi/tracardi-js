@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@analytics/cookie-utils": "^0.2.7",
     "@analytics/listener-utils": "^0.2.6",
     "@analytics/storage-utils": "^0.2.14",
     "@babel/core": "^7.0.0-0",
     "@types/dlv": "^1.0.0",
     "analytics": "^0.7.5",
     "babelify": "10",
+    "js-cookie": "^3.0.5",
     "uuid": "^8.3.2",
     "web-vitals": "^2.1.0"
   },
