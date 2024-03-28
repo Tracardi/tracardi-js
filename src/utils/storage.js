@@ -20,8 +20,11 @@ export function getSessionId() {
 
 
 export function getProfileId(config) {
+
+    // This is a way to statically define profile ID. See `Forcing Profile ID` in the documentation.
+
     if (config?.tracker?.profile) {
-        return config.tracker.profile
+        return config.tracker.profile  // It returns {id: xxx}
     }
     return (profileId != null)
         ? {id: profileId}
