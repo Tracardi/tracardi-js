@@ -1,5 +1,5 @@
 import Event from './event';
-import {getCookie} from "@analytics/cookie-utils";
+import {getCookie} from "../cookies";
 
 export default function EventsList(container, profile) {
 
@@ -26,7 +26,8 @@ export default function EventsList(container, profile) {
 
         },
         get: (config) => {
-            // Add performance to each event if configured
+            // Add performance to each collected event if configured
+            // This is a context on top tracker level
 
             if (config?.tracker?.context?.performance === true && typeof window?.performance?.getEntriesByType === 'function') {
                 const performance = window.performance.getEntriesByType("navigation")

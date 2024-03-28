@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
     <title>My title</title>
@@ -125,10 +126,17 @@
                 source: {
                     id: "demo-website"
                 },
+                settings: {
+                    trackExternalLinks: ['example.com', 'tracardi.com']
+                },
                 context: {
-                    page: true,
-                    browser: false,
-                    screen: false
+                    "cookies": true,
+                    "storage": true,
+                    "screen": true,
+                    "page": true,
+                    "browser": true,
+                    "performance": true,
+                    "location": true
                 },
                 auto: {
                     events: [
@@ -140,7 +148,7 @@
                         {tag:"product", trigger:'onVisible', data: {event: 'image-viewed'}},
                         {tag:"title", trigger:'onTextSelect', data: {event: 'text-selected'}}
                     ]
-                }
+                },
                 // external: [
                 //     {url: 'https://api.ipify.org?format=json', storage: "__tr_1", key: "location1"},
                 //     {url: 'https://api.myip.com/', storage: "__tr_2", key: "location2"}
@@ -195,13 +203,14 @@
             "location": "Berlin/Germany"
         });
 
-
+        // Test page visibility change. If page is not visible then console.log visible
         document.addEventListener("visibilitychange", function () {
             if (document.visibilityState === 'visible') {
                 console.log("visible");
+                window.tracker.track("visible", {}, {asBeacon: true})
             } else {
                 console.log("invisible");
-                navigator.sendBeacon('http://localhost:8686/healthcheck', {});
+                window.tracker.track("invisible", {}, {asBeacon: true})
             }
         });
 
@@ -236,6 +245,8 @@ const options = {
 </pre>
 <button id="context">Test context bind</button>
 <button onClick="testClick()">Test on click</button>
+<a href="https://example.com">External patched link</a>
+<a href="https://abc.com">NOT External patched link</a>
 <h2>Events</h2>
 <section data-tracardi-tag="over">
     <p>This is the example code that sends events to TRACARDI. Events pinpoint what happened on your web-site</p>

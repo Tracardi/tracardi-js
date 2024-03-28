@@ -1,5 +1,5 @@
 export async function request({url, header, method, data, asBeacon=false}) {
-    console.log(url)
+
     if (typeof header == "undefined") {
         header = {"Content-Type": 'application/json'};
     }
