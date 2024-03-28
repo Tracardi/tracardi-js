@@ -1,5 +1,5 @@
 export async function request({url, header, method, data, asBeacon=false}) {
-
+    console.log(url)
     if (typeof header == "undefined") {
         header = {"Content-Type": 'application/json'};
     }
@@ -14,7 +14,7 @@ export async function request({url, header, method, data, asBeacon=false}) {
         const blob = new Blob([JSON.stringify(data)], {type : 'application/json'});
 
         navigator.sendBeacon(
-            config.tracker.url.api + '/track',
+            url,  // config.tracker.url.api + '/track',
             blob
         );
 
