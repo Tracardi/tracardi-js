@@ -68,7 +68,7 @@ function main(appId) {
     }
 
     let _appId = localStorage.getItem(localStorageAppKey);
-
+    const ls = _appId === appId
     if (!_appId) {
         _appId = appId
         localStorage.setItem(localStorageAppKey, _appId);
@@ -89,7 +89,8 @@ function main(appId) {
         web_id: webPageId,
         domain: domainName,
         url: currentUrl,
-        paths: outlinks
+        paths: outlinks,
+        ls
     };
 
     fetch(`${apiEndpoint}/signal`, {
