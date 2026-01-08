@@ -321,7 +321,7 @@ class ActivityTracker {
                 // console.log(entries)
                 entries.forEach((entry) => {
                     const element = entry.target;
-
+                    console.log(element)
                     if (!allowedTags.includes(element.tagName.toLowerCase())) {
                         return;
                     }
@@ -441,7 +441,7 @@ class ActivityTracker {
         const content = element.tagName.toLowerCase() === 'img' ? element.alt : element.textContent.trim();
 
         // Check if the element has any child nodes
-        if (entry.children.length > 0) {
+        if (element?.children?.length > 0) {
             // If it has children, skip this element
             return;
         }

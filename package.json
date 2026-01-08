@@ -21,7 +21,8 @@
     "browserify-header": "^1.1.0",
     "rimraf": "^3.0.2",
     "uglify-js": "^3.13.5",
-    "yarn": "^1.22.17"
+    "yarn": "^1.22.17",
+    "vite": "^5.0.0"
   },
   "scripts": {
     "build-tm": "yarn tm:browserify && yarn tm:minify",
@@ -42,6 +43,7 @@
     "tm:browserify": "browserify -t [ babelify --presets [ @babel/preset-env  ] ] tm-test.js -s tracardi -o dist/tm.js",
     "tm:minify": "cd dist && uglifyjs -c -m -o tm.min.js --source-map url=tm.min.js.map -- tm.js",
     "clean": "rimraf *.log dist/*",
-    "clean:all": "yarn clean && rimraf node_modules"
+    "clean:all": "yarn clean && rimraf node_modules",
+    "vbuild":  "vite build"
   }
 }
